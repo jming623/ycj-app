@@ -16,7 +16,7 @@ object DatabaseConfig {
              * * EX) jdbc:mariadb://localhost:3306/{Database Name}
              */
             HikariConfig().apply {
-                jdbcUrl = System.getenv("DB_URL")
+                jdbcUrl = "jdbc:mariadb://localhost:3306/sample"
                 driverClassName = "org.mariadb.jdbc.Driver"
                 username = "test"
                 password = "test"
