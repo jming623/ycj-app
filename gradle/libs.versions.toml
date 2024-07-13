@@ -16,6 +16,9 @@ kotlin = "2.0.0"
 ktor = "2.3.12"
 logback = "1.5.6"
 kotlinx-serialization = "1.7.0"
+kotlinxCoroutinesCore = "1.9.0-RC"
+arkivanovDecompose = "2.2.2-compose-experimental"
+koinCore = "3.5.6"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -34,13 +37,20 @@ ktor-server-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "k
 ktor-server-tests = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
+arkivanov-decompose-v222composeexperimental = { module = "com.arkivanov.decompose:decompose", version.ref = "arkivanovDecompose" }
+arkivanov-extensions-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "arkivanovDecompose" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinCore" }
+
 # Android
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinCore" }
 
 # Ios
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }

@@ -34,6 +34,9 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.android)
+
+            implementation(libs.arkivanov.decompose.v222composeexperimental)
+            implementation(libs.arkivanov.extensions.compose.jetbrains)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -49,10 +52,16 @@ kotlin {
             implementation(projects.shared)
 
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.coroutines.core)
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+
+            implementation(libs.arkivanov.decompose.v222composeexperimental)
+            implementation(libs.arkivanov.extensions.compose.jetbrains)
+
+            implementation(libs.koin.core)
         }
     }
 }
@@ -91,6 +100,7 @@ android {
     }
     dependencies {
         debugImplementation(compose.uiTooling)
+        implementation(libs.koin.android)
     }
 }
 
