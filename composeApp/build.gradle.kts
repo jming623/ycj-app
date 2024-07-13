@@ -58,6 +58,9 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
+            implementation(libs.mvvm.core)
+            api(libs.image.loader)
+
             implementation(libs.arkivanov.decompose.v222composeexperimental)
             implementation(libs.arkivanov.extensions.compose.jetbrains)
 

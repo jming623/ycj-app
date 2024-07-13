@@ -18,6 +18,8 @@ dependencies {
     implementation(libs.ktor.server.netty)
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.server.json)
 
     implementation(libs.ktorm.core)
     implementation(libs.ktorm.support.mysql)
