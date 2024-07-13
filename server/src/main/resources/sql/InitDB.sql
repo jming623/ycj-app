@@ -1,0 +1,10 @@
+CREATE DATABASE IF NOT EXISTS TestDatabase;
+USE TestDatabase;
+
+GRANT ALL PRIVILEGES ON TestDatabase.* TO 'test'@'%';
+
+CREATE TABLE user (
+    idx BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name TEXT NOT NULL,
+    gender TEXT NOT NULL
+)

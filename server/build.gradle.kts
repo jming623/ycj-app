@@ -18,4 +18,11 @@ dependencies {
     implementation(libs.ktor.server.netty)
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit)
+
+    implementation(libs.ktorm.core)
+    implementation(libs.ktorm.support.mysql)
+    implementation(libs.ktorm.jackson)
+    implementation(libs.mysql.connector)
+    implementation(libs.hikariCP)
+    implementation(libs.mariadb)
 }

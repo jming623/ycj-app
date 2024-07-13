@@ -19,6 +19,11 @@ kotlinx-serialization = "1.7.0"
 kotlinxCoroutinesCore = "1.9.0-RC"
 arkivanovDecompose = "2.2.2-compose-experimental"
 koinCore = "3.5.6"
+## Ktor Server
+ktorm = "4.0.0"
+mysql-connector = "8.0.33"
+hikariCP = "5.1.0"
+mariadb = "3.3.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -54,6 +59,14 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinCore
 
 # Ios
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+
+## Ktor Server
+ktorm-core = { group = "org.ktorm", name = "ktorm-core", version.ref = "ktorm" }
+ktorm-jackson = { group = "org.ktorm", name = "ktorm-jackson", version.ref = "ktorm" }
+ktorm-support-mysql = { group = "org.ktorm", name = "ktorm-support-mysql", version.ref = "ktorm" }
+mysql-connector = { group = "mysql", name = "mysql-connector-java", version.ref = "mysql-connector" }
+hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
+mariadb = { group = "org.mariadb.jdbc", name = "mariadb-java-client", version.ref = "mariadb" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

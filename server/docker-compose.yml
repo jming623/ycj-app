@@ -1,0 +1,26 @@
+services:
+  application:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "50006:8080"
+    container_name: SampleKMP-API
+    environment:
+      - DB_URL=jdbc:mariadb://mariadb/TestDatabase
+    depends_on:
+      - mariadb
+    restart: always
+  mariadb:
+    image: 'mariadb:latest'
+    ports:
+      - "50016:3306"
+    container_name: SampleKMP-DB
+    environment:
+      - MARIADB_USER=test
+      - MARIADB_PASSWORD=test
+      - MARIADB_ROOT_PASSWORD=root
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    restart: unless-stopped
