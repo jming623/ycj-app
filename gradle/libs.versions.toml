@@ -21,14 +21,17 @@ arkivanovDecompose = "2.2.2-compose-experimental"
 koinCore = "3.5.6"
 mvvmCore = "0.16.1"
 imageLoader = "1.7.8"
+timber = "5.0.1"
 
 ## Ktor Server
 ktorm = "4.0.0"
 mysql-connector = "8.0.33"
 hikariCP = "5.1.0"
 mariadb = "3.3.3"
+lifecycleViewmodelAndroid = "2.8.3"
 
 [libraries]
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinCore" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -57,10 +60,12 @@ arkivanov-extensions-compose-jetbrains = { module = "com.arkivanov.decompose:ext
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinCore" }
 mvvm-core = { module = "dev.icerock.moko:mvvm-core", version.ref = "mvvmCore" }
 image-loader = { module = "io.github.qdsfdhvh:image-loader", version.ref = "imageLoader" }
+ktor-client-logging-jvm = { group = "io.ktor", name = "ktor-client-logging-jvm", version.ref = "ktor" }
 
 # Android
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinCore" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 # Ios
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
@@ -74,6 +79,7 @@ hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
 mariadb = { group = "org.mariadb.jdbc", name = "mariadb-java-client", version.ref = "mariadb" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

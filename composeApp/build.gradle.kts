@@ -65,6 +65,8 @@ kotlin {
             implementation(libs.arkivanov.extensions.compose.jetbrains)
 
             implementation(libs.koin.core)
+
+            implementation(libs.timber)
         }
     }
 }
@@ -104,6 +106,11 @@ android {
     dependencies {
         debugImplementation(compose.uiTooling)
         implementation(libs.koin.android)
+        implementation(libs.ktor.client.logging.jvm)
+        implementation(libs.timber)
     }
+}
+dependencies {
+    implementation(libs.androidx.lifecycle.viewmodel.android)
 }
 
