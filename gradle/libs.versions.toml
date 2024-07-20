@@ -55,8 +55,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
-arkivanov-decompose-v222composeexperimental = { module = "com.arkivanov.decompose:decompose", version.ref = "arkivanovDecompose" }
-arkivanov-extensions-compose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "arkivanovDecompose" }
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "arkivanovDecompose" }
+decompose-jetbrains = { module = "com.arkivanov.decompose:extensions-compose-jetbrains", version.ref = "arkivanovDecompose" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koinCore" }
 mvvm-core = { module = "dev.icerock.moko:mvvm-core", version.ref = "mvvmCore" }
 image-loader = { module = "io.github.qdsfdhvh:image-loader", version.ref = "imageLoader" }
@@ -89,5 +89,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-
 serializer = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

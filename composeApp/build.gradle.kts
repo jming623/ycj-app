@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.serializer)
 }
 
 kotlin {
@@ -31,12 +32,13 @@ kotlin {
     sourceSets {
         
         androidMain.dependencies {
+            implementation(compose.ui)
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.android)
 
-            implementation(libs.arkivanov.decompose.v222composeexperimental)
-            implementation(libs.arkivanov.extensions.compose.jetbrains)
+            implementation(libs.decompose)
+            implementation(libs.decompose.jetbrains)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -61,8 +63,8 @@ kotlin {
             implementation(libs.mvvm.core)
             api(libs.image.loader)
 
-            implementation(libs.arkivanov.decompose.v222composeexperimental)
-            implementation(libs.arkivanov.extensions.compose.jetbrains)
+            implementation(libs.decompose)
+            implementation(libs.decompose.jetbrains)
 
             implementation(libs.koin.core)
 
