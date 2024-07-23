@@ -5,11 +5,14 @@ sealed class Apis {
         val GET_USERS_BY_DSL: String = "/dsl"
         val GET_USERS_BY_SEQUENCE: String = AppConst.getUrl("/sequence")
         val GET_USERS_BY_NATIVE_QUERY: String = AppConst.getUrl("/nativeQuery")
-
         enum class SearchType {
             DSL,
             SEQUENCE,
             NATIVE_QUERY
         }
+    }
+
+    data object  Menu: Apis() {
+        val GET_MENUS: String = AppConst.getUrl("/home-menu")
     }
 }

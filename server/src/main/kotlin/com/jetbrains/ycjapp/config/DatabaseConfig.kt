@@ -18,8 +18,8 @@ object DatabaseConfig {
             HikariConfig().apply {
                 jdbcUrl = "jdbc:mariadb://localhost:3306/sample"
                 driverClassName = "org.mariadb.jdbc.Driver"
-                username = "test"
-                password = "test"
+                username = "root"
+                password = "1234"
             }
         ),
         dialect = MySqlDialect(),

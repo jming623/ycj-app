@@ -13,6 +13,7 @@ import com.arkivanov.decompose.extensions.compose.jetbrains.stack.animation.slid
 import com.arkivanov.decompose.extensions.compose.jetbrains.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import compose.navigation.RootComponent
+import compose.screen.HomeView
 import compose.screen.ScreenA
 import compose.screen.ScreenB
 import compose.ui.view.user.UserVM
@@ -34,8 +35,8 @@ fun App(root: RootComponent) {
             animation = stackAnimation(slide())
         ) { child ->
             when(val instance = child.instance) {
-                is RootComponent.Child.ScreenA -> ScreenA(instance.component)
-                is RootComponent.Child.ScreenB -> ScreenB(instance.component.text, instance.component)
+                is RootComponent.Child.HomeView -> HomeView(instance.component)
+//                is RootComponent.Child.ScreenB -> ScreenB(instance.component.text, instance.component)
             }
         }
 //        UserView()

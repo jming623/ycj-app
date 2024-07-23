@@ -2,6 +2,7 @@ package com.jetbrains.ycjapp
 
 import Greeting
 import SERVER_PORT
+import com.jetbrains.ycjapp.service.MenuService
 import com.yuventius.sample_project.service.UserService
 import com.yuventius.sample_project.service.logger
 import io.ktor.serialization.kotlinx.json.json
@@ -27,20 +28,23 @@ fun Application.module() {
         })
     }
     routing {
-        get("/dsl") {
-            val nickname: String? = call.request.queryParameters["nickname"]
-            logger.info("nickname is ${nickname}")
-            call.respond(UserService.getUsersByDSL(nickname))
-        }
-
-        get("/sequence") {
-            val nickname: String? = call.request.queryParameters["nickname"]
-            call.respond(UserService.getUsersBySequence(nickname))
-        }
-
-        get("/nativeQuery") {
-            val nickname: String? = call.request.queryParameters["nickname"]
-            call.respond(UserService.getUserByNativeQuery(nickname))
+//        get("/dsl") {
+//            val nickname: String? = call.request.queryParameters["nickname"]
+//            logger.info("nickname is ${nickname}")
+//            call.respond(UserService.getUsersByDSL(nickname))
+//        }
+//
+//        get("/sequence") {
+//            val nickname: String? = call.request.queryParameters["nickname"]
+//            call.respond(UserService.getUsersBySequence(nickname))
+//        }
+//
+//        get("/nativeQuery") {
+//            val nickname: String? = call.request.queryParameters["nickname"]
+//            call.respond(UserService.getUserByNativeQuery(nickname))
+//        }
+        get("/home-menu") {
+            call.respond(MenuService.getMenus())
         }
     }
 }

@@ -39,9 +39,11 @@ kotlin {
 
             implementation(libs.decompose)
             implementation(libs.decompose.jetbrains)
+            implementation(libs.napier)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.napier)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -68,7 +70,8 @@ kotlin {
 
             implementation(libs.koin.core)
 
-            implementation(libs.timber)
+//            implementation(libs.timber)
+            implementation(libs.napier)
         }
     }
 }

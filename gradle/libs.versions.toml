@@ -21,6 +21,7 @@ arkivanovDecompose = "2.2.2-compose-experimental"
 koinCore = "3.5.6"
 mvvmCore = "0.16.1"
 imageLoader = "1.7.8"
+napier = "2.4.0"
 timber = "5.0.1"
 
 ## Ktor Server
@@ -65,6 +66,7 @@ ktor-client-logging-jvm = { group = "io.ktor", name = "ktor-client-logging-jvm",
 # Android
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinCore" }
+napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 # Ios
