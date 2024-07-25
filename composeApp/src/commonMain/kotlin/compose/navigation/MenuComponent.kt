@@ -1,8 +1,8 @@
 package compose.navigation
 
 import com.arkivanov.decompose.ComponentContext
-import compose.domain.model.ApiResult
-import compose.domain.use_case.MenuUseCase
+import compose.domain.ApiResult
+import compose.data.use_case.MenuUseCase
 import data.Menu
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow

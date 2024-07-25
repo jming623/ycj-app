@@ -1,13 +1,11 @@
 package compose.data.repos
 
-import compose.domain.model.ApiResult
-import compose.domain.repos.MenuRepos
+import compose.domain.ApiResult
 import compose.util.Apis
 import data.Menu
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.http.parameters
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

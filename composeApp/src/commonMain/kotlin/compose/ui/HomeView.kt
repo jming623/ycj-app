@@ -1,4 +1,4 @@
-package compose.screen
+package compose.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -10,8 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
-import compose.domain.model.ApiResult
+import compose.domain.ApiResult
 import compose.navigation.MenuComponent
 import data.Menu
 

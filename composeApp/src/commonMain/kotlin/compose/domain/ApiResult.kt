@@ -1,4 +1,4 @@
-package compose.domain.model
+package compose.domain
 
 sealed class ApiResult<T>(val data: T? = null, val error: String? = null) {
     class Success<T>(quotes: T): ApiResult<T>(data = quotes)

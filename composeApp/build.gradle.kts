@@ -30,7 +30,6 @@ kotlin {
     }
     
     sourceSets {
-        
         androidMain.dependencies {
             implementation(compose.ui)
             implementation(compose.preview)
@@ -70,7 +69,6 @@ kotlin {
 
             implementation(libs.koin.core)
 
-//            implementation(libs.timber)
             implementation(libs.napier)
         }
     }
@@ -112,7 +110,6 @@ android {
         debugImplementation(compose.uiTooling)
         implementation(libs.koin.android)
         implementation(libs.ktor.client.logging.jvm)
-        implementation(libs.timber)
     }
 }
 dependencies {
