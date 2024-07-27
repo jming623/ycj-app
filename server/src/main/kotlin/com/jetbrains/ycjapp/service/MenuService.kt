@@ -1,6 +1,6 @@
 package com.jetbrains.ycjapp.service
 
-import com.yuventius.sample_project.config.DatabaseConfig
+import com.jetbrains.ycjapp.config.DatabaseConfig
 import data.Menu
 import io.ktor.util.logging.KtorSimpleLogger
 import org.ktorm.database.asIterable
@@ -18,13 +18,13 @@ object MenuService {
         return db.useConnection { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.executeQuery().asIterable().map { row ->
-                    val id = row.getInt("id")
-                    val name = row.getString("name")
-                    val price = row.getInt("price")
-                    val categoryId = row.getInt("category_id")
-                    val description = row.getString("description")
+                    val menuId = row.getInt("menu_id")
+                    val menuName = row.getString("menu_name")
+                    val idx = row.getInt("idx")
+                    val isDisabled = row.getInt("is_disabled")
+                    val regDate = row.getString("reg_date")
 
-                    Menu(id, name, price, categoryId, description)
+                    Menu(menuId, menuName, idx, isDisabled, regDate)
                 }
             }
         }

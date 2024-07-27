@@ -1,4 +1,4 @@
-package com.yuventius.sample_project.config
+package com.jetbrains.ycjapp.config
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
