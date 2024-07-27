@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.flowOn
 
 class MenuComponent(
     componentContext: ComponentContext,
-    private val defaultDispatcher: CoroutineDispatcher, // 추가
-    private val menuUseCase: MenuUseCase // 메뉴 데이터를 가져오는 UseCase 추가
+    private val defaultDispatcher: CoroutineDispatcher,
+    private val menuUseCase: MenuUseCase
 ): ComponentContext by componentContext {
 
     private var _menus = MutableStateFlow<ApiResult<List<Menu>>>(ApiResult.Loading())
@@ -39,7 +39,6 @@ class MenuComponent(
         }
     }
 
-    // 클래스가 더 이상 필요하지 않을 때 스코프를 취소합니다.
     fun onDestroy() {
         componentScope.cancel()
     }

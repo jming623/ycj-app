@@ -39,30 +39,11 @@ class RootComponent(
                     menuUseCase = menuUseCase
                 )
             )
-//            Configuration.ScreenA -> Child.ScreenA(
-//                ScreenAComponent(
-//                    componentContext = context,
-//                    onNavigateToScreenB = { text ->
-//                        navigation.pushNew(Configuration.ScreenB(text))
-//                    }
-//                )
-//            )
-//            is Configuration.ScreenB -> Child.ScreenB(
-//                ScreenBComponent(
-//                    text = config.text,
-//                    componentContext = context,
-//                    onGoBack = {
-//                        navigation.pop()
-//                    }
-//                )
-//            )
         }
     }
 
     sealed class Child {
         data class HomeView(val component: MenuComponent): Child()
-//        data class ScreenA(val component: ScreenAComponent): Child()
-//        data class ScreenB(val component: ScreenBComponent): Child()
     }
 
     @Serializable
@@ -70,11 +51,5 @@ class RootComponent(
 
         @Serializable
         data object HomeView : Configuration()
-
-//        @Serializable
-//        data object ScreenA: Configuration()
-//
-//        @Serializable
-//        data class ScreenB(val text: String): Configuration()
     }
 }
