@@ -2,6 +2,7 @@ package compose.data.repos
 
 import compose.domain.ApiResult
 import compose.util.Apis
+import data.BottomMenu
 import data.Menu
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -19,6 +20,20 @@ class MenuReposImpl(
             emit(
                 ApiResult.Success(
                     httpClient.get(Apis.Menu.GET_MENUS){}.body()
+                )
+            )
+        } catch (e: Exception) {
+            println("Error occurred: ${e.message}") // 디버깅용
+            emit(ApiResult.Error("Communication Error occurred!"))
+        }
+    }
+
+    override fun getBottomMenu(): Flow<ApiResult<List<BottomMenu>>> = flow {
+        emit(ApiResult.Loading())
+        try {
+            emit(
+                ApiResult.Success(
+                    httpClient.get(Apis.Menu.GET_BOTTOM_MENUS){}.body()
                 )
             )
         } catch (e: Exception) {

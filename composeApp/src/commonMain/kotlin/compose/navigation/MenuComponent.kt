@@ -3,6 +3,7 @@ package compose.navigation
 import com.arkivanov.decompose.ComponentContext
 import compose.domain.ApiResult
 import compose.data.use_case.MenuUseCase
+import data.BottomMenu
 import data.Menu
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,13 +18,16 @@ class MenuComponent(
 ): ComponentContext by componentContext {
 
     private var _menus = MutableStateFlow<ApiResult<List<Menu>>>(ApiResult.Loading())
+    private var _bottomMenus = MutableStateFlow<ApiResult<List<BottomMenu>>>(ApiResult.Loading())
     val menus = _menus.asStateFlow()
+    val bottomMenus = _bottomMenus.asStateFlow()
 
     // 코루틴 스코프 설정
     private val componentScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     init {
         getMenuItems()
+        getBottomMenuItems()
     }
 
     private fun getMenuItems() {
@@ -35,6 +39,19 @@ class MenuComponent(
                 }
                 .collect {
                     _menus.value = it
+                }
+        }
+    }
+
+    private fun getBottomMenuItems() {
+        componentScope.launch {
+            menuUseCase.getBottomMenus()
+                .flowOn(defaultDispatcher)
+                .catch {
+                    _bottomMenus.value = ApiResult.Error("Internal Error occurred!")
+                }
+                .collect {
+                    _bottomMenus.value = it
                 }
         }
     }

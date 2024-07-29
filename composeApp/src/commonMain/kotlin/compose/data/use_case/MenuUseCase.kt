@@ -6,4 +6,5 @@ class MenuUseCase(
     private val menuRepos: MenuReposImpl
 ) {
     fun getMenus() = menuRepos.getMenu()
+    fun getBottomMenus() = menuRepos.getBottomMenu()
 }

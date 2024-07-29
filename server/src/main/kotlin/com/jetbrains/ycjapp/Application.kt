@@ -29,5 +29,8 @@ fun Application.module() {
         get("/home-menu") {
             call.respond(MenuService.getMenus())
         }
+        get("/menu/bottom") {
+            call.respond(MenuService.getBottomMenus())
+        }
     }
 }
