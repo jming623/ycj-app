@@ -30,6 +30,7 @@ mysql-connector = "8.0.33"
 hikariCP = "5.1.0"
 mariadb = "3.3.3"
 lifecycleViewmodelAndroid = "2.8.3"
+material3Android = "1.2.1"
 
 [libraries]
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinCore" }
@@ -81,6 +82,7 @@ mariadb = { group = "org.mariadb.jdbc", name = "mariadb-java-client", version.re
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-android", version.ref = "lifecycleViewmodelAndroid" }
+androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

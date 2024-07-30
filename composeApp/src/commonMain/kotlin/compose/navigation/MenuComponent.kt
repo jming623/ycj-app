@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
 
 class MenuComponent(
+    private val rootComponent: RootComponent,
     componentContext: ComponentContext,
     private val defaultDispatcher: CoroutineDispatcher,
     private val menuUseCase: MenuUseCase
@@ -24,6 +25,10 @@ class MenuComponent(
 
     // 코루틴 스코프 설정
     private val componentScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private fun onSettingsButtonClick() {
+        rootComponent.navigate(RootComponent.Configuration.SettingsView)
+    }
 
     init {
         getMenuItems()

@@ -114,5 +114,6 @@ android {
 }
 dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.android)
+    implementation(libs.androidx.material3.android)
 }
 

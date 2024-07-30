@@ -4,6 +4,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.push
 import compose.data.use_case.MenuUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.serialization.Serializable
@@ -18,6 +20,7 @@ class RootComponent(
     private val menuUseCase: MenuUseCase by inject()
 
     private val navigation = StackNavigation<Configuration>()
+
     val childStack = childStack(
         source = navigation,
         serializer = Configuration.serializer(),
@@ -34,16 +37,33 @@ class RootComponent(
         return when(config) {
             Configuration.HomeView -> Child.HomeView(
                 MenuComponent(
+                    rootComponent = this,
                     componentContext = context,
                     defaultDispatcher = defaultDispatcher,
                     menuUseCase = menuUseCase
                 )
             )
+        is Configuration.SettingsView -> Child.SettingsView(
+                SettingsComponent(
+                    rootComponent = this,
+                    componentContext = context,
+                    defaultDispatcher = defaultDispatcher
+                )
+            )
         }
+    }
+
+    fun navigate(configuration: Configuration) {
+        navigation.push(configuration)
+    }
+
+    fun pop() {
+        navigation.pop()
     }
 
     sealed class Child {
         data class HomeView(val component: MenuComponent): Child()
+        data class SettingsView(val component: SettingsComponent): Child()
     }
 
     @Serializable
@@ -51,5 +71,8 @@ class RootComponent(
 
         @Serializable
         data object HomeView : Configuration()
+
+        @Serializable
+        data object SettingsView : Configuration()
     }
 }

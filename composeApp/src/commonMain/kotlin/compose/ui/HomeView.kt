@@ -20,20 +20,18 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import compose.util.LightGreen
+import compose.util.PastelBlue
 import data.BottomMenu
 
-// 사용자 정의 색상
-val PastelBlue = Color(0xFFB3CDE0)
-val LightGreen = Color(0xFFC9E4C5)
-val LightGray = Color(0xFFF0F0F0)
-val White = Color(0xFFFFFFFF)
 
 @Composable
-fun HomeView(menuComponent: MenuComponent) {
+fun HomeView(menuComponent: MenuComponent, onNavigateToSettings: () -> Unit) {
 //    val menusState by menuComponent.menus.subscribeAsState()
     val menusState by menuComponent.menus.collectAsState()
     val bottomMenusState by menuComponent.bottomMenus.collectAsState()
@@ -44,7 +42,7 @@ fun HomeView(menuComponent: MenuComponent) {
         modifier = Modifier.fillMaxSize()
     ) {
         // Header
-        Header(title = "My App", notificationsCount = 3)
+        Header(title = "My App", notificationsCount = 3, onNavigateToSettings = onNavigateToSettings)
 
         // SecondHeader
         SecondHeader(
@@ -66,10 +64,25 @@ fun HomeView(menuComponent: MenuComponent) {
 }
 
 @Composable
-fun Header(title: String, notificationsCount: Int) {
+fun Header(title: String, notificationsCount: Int, onNavigateToSettings: () -> Unit) {
     TopAppBar(
-        title = { Text(title) },
+        title = {
+            Text(
+                text = title,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Start
+            )
+        },
+//        navigationIcon = {
+//            IconButton(onClick = onNavigateToSettings) {
+//                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+//            }
+//        },
         actions = {
+            IconButton(onClick = onNavigateToSettings) {
+                Icon(Icons.Filled.Settings, contentDescription = "Settings")
+            }
+
             Box(
                 modifier = Modifier
                     .padding(16.dp)

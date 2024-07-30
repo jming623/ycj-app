@@ -6,6 +6,7 @@ import com.arkivanov.decompose.extensions.compose.jetbrains.stack.animation.stac
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import compose.navigation.RootComponent
 import compose.ui.HomeView
+import compose.ui.SettingsView
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
@@ -19,7 +20,14 @@ fun App(root: RootComponent) {
             animation = stackAnimation(slide())
         ) { child ->
             when(val instance = child.instance) {
-                is RootComponent.Child.HomeView -> HomeView(instance.component)
+                is RootComponent.Child.HomeView -> HomeView(
+                    instance.component,
+                    onNavigateToSettings = { root.navigate(RootComponent.Configuration.SettingsView) }
+                )
+                is RootComponent.Child.SettingsView -> {
+                    val settingsComponent = instance.component
+                    settingsComponent.showView()
+                }
             }
         }
     }
