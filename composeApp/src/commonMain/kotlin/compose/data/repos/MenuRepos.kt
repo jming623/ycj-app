@@ -8,4 +8,5 @@ import kotlinx.coroutines.flow.Flow
 interface MenuRepos {
     fun getMenu(): Flow<ApiResult<List<Menu>>>
     fun getBottomMenu(): Flow<ApiResult<List<BottomMenu>>>
+    fun insertMenu(menu: Menu): Flow<ApiResult<Unit>>
 }

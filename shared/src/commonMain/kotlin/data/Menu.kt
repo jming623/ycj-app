@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Menu(
     @SerialName("menu_id")
-    val menuId: Int,
+    val menuId: Int?,
     @SerialName("menu_name")
     val menuName: String?,
     @SerialName("idx")

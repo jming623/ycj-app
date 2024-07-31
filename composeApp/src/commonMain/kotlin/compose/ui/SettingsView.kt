@@ -21,7 +21,7 @@ fun SettingsView(
     onMenuNameChange: (String) -> Unit,
     menuOrder: String,
     onMenuOrderChange: (String) -> Unit,
-    onSubmitClick: () -> Unit = {}
+    onSubmitClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
