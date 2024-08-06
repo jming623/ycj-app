@@ -18,8 +18,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -35,7 +38,6 @@ fun HomeView(menuComponent: MenuComponent, onNavigateToSettings: () -> Unit) {
 //    val menusState by menuComponent.menus.subscribeAsState()
     val menusState by menuComponent.menus.collectAsState()
     val bottomMenusState by menuComponent.bottomMenus.collectAsState()
-
     var selectedTabIndex by remember { mutableStateOf(0) }
 
     Column(
@@ -178,8 +180,7 @@ fun Footer(bottomMenusState: ApiResult<List<BottomMenu>>, modifier: Modifier = M
         modifier = modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(8.dp)
-            .shadow(4.dp), // 그림자 효과 추가
+            .shadow(2.dp), // 그림자 효과 추가
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -188,10 +189,18 @@ fun Footer(bottomMenusState: ApiResult<List<BottomMenu>>, modifier: Modifier = M
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(4.dp)
+                    .padding(top = 8.dp)
             ) {
+                val icon = when (menuName) {
+                    "Home" -> Icons.Filled.Home
+                    "Search" -> Icons.Filled.Search
+                    "Chat" -> Icons.Filled.MailOutline
+                    "MyPage" -> Icons.Filled.AccountCircle
+                    else -> Icons.Default.Home // 기본 아이콘 설정
+                }
+
                 Icon(
-                    imageVector = Icons.Default.Home,
+                    imageVector = icon,
                     contentDescription = menuName,
                     modifier = Modifier.size(24.dp),
                     tint = Color.Black

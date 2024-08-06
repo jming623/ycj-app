@@ -8,6 +8,7 @@ import compose.data.repos.MenuReposImpl
 import compose.domain.ApiResult
 import compose.ui.SettingsView
 import data.Menu
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,9 @@ class SettingsComponent(
     private var _menuOrder = MutableStateFlow("")
     val menuOrder = _menuOrder.asStateFlow()
 
+    private var _notificationMessage = MutableStateFlow<String?>(null)
+    val notificationMessage = _notificationMessage.asStateFlow()
+
     private fun onBackButtonClick() {
         rootComponent.pop()
     }
@@ -56,11 +60,13 @@ class SettingsComponent(
                 .onEach { apiResult ->
                     when (apiResult) {
                         is ApiResult.Success -> {
-                            println("Settings Submitted: Menu Name = ${_menuName.value}, Menu Order = ${_menuOrder.value}")
+//                            _notificationMessage.value = "Settings Submitted: Menu Name = $name, Menu Order = $order"
+                            _notificationMessage.value = "메뉴가 정상적으로 등록 되었습니다."
                         }
 
                         is ApiResult.Error -> {
-                            println("Error in insertMenu")
+//                            _notificationMessage.value = "Error in insertMenu"
+                            _notificationMessage.value = "서버 에러"
                         }
 
                         is ApiResult.Loading -> {
@@ -75,6 +81,8 @@ class SettingsComponent(
     fun showView() {
         val menuName by menuName.collectAsState()
         val menuOrder by menuOrder.collectAsState()
+        val notificationMsg by notificationMessage.collectAsState()
+        Napier.d("notificationMsg > ${notificationMsg}")
 
         SettingsView(
             onBackButtonClick = { onBackButtonClick() },
@@ -82,7 +90,8 @@ class SettingsComponent(
             onMenuNameChange = { _menuName.value = it },
             menuOrder = menuOrder,
             onMenuOrderChange = { _menuOrder.value = it },
-            onSubmitClick = { onSubmitClick() }
+            onSubmitClick = { onSubmitClick() },
+            notificationMessage = notificationMsg
         )
     }
 }
