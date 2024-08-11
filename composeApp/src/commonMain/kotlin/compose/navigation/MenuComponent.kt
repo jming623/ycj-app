@@ -7,6 +7,7 @@ import data.BottomMenu
 import data.Menu
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOn
@@ -19,44 +20,48 @@ class MenuComponent(
 ): ComponentContext by componentContext {
 
     private var _menus = MutableStateFlow<ApiResult<List<Menu>>>(ApiResult.Loading())
+    val menus: StateFlow<ApiResult<List<Menu>>> = _menus.asStateFlow()
+
     private var _bottomMenus = MutableStateFlow<ApiResult<List<BottomMenu>>>(ApiResult.Loading())
-    val menus = _menus.asStateFlow()
-    val bottomMenus = _bottomMenus.asStateFlow()
+    val bottomMenus: StateFlow<ApiResult<List<BottomMenu>>> = _bottomMenus.asStateFlow()
 
     // 코루틴 스코프 설정
     private val componentScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private fun onSettingsButtonClick() {
-        rootComponent.navigate(RootComponent.Configuration.SettingsView)
-    }
+//    private fun onSettingsButtonClick() {
+//        rootComponent.navigate(RootComponent.Configuration.SettingsView)
+//    }
 
     init {
-        getMenuItems()
-        getBottomMenuItems()
+        refreshData()
     }
 
-    private fun getMenuItems() {
+    fun refreshData() {
+        fetchMenus()
+        fetchBottomMenus()
+    }
+
+    private fun fetchMenus() {
         componentScope.launch {
             menuUseCase.getMenus()
                 .flowOn(defaultDispatcher)
-                .catch {
-                    _menus.value = ApiResult.Error("Internal Error occurred!")
+                .catch { e ->
+                    _menus.value = ApiResult.Error("Internal Error occurred: ${e.message}")
                 }
-                .collect {
-                    _menus.value = it
+                .collect { result ->
+                    _menus.value = result
                 }
         }
     }
-
-    private fun getBottomMenuItems() {
+    private fun fetchBottomMenus() {
         componentScope.launch {
             menuUseCase.getBottomMenus()
                 .flowOn(defaultDispatcher)
-                .catch {
-                    _bottomMenus.value = ApiResult.Error("Internal Error occurred!")
+                .catch { e ->
+                    _bottomMenus.value = ApiResult.Error("Internal Error occurred: ${e.message}")
                 }
-                .collect {
-                    _bottomMenus.value = it
+                .collect { result ->
+                    _bottomMenus.value = result
                 }
         }
     }

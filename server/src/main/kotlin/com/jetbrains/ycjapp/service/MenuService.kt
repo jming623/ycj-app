@@ -18,7 +18,7 @@ object MenuService {
      * Native Query
      */
     fun getMenus(): List<Menu> {
-        val query = "SELECT * FROM menu_tbl WHERE is_disabled = FALSE"
+        val query = "SELECT * FROM menu_tbl WHERE is_disabled = FALSE ORDER BY idx"
         return db.useConnection { connection ->
             connection.prepareStatement(query).use { statement ->
                 statement.executeQuery().asIterable().map { row ->

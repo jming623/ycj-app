@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -40,6 +41,10 @@ fun HomeView(menuComponent: MenuComponent, onNavigateToSettings: () -> Unit) {
     val bottomMenusState by menuComponent.bottomMenus.collectAsState()
     var selectedTabIndex by remember { mutableStateOf(0) }
 
+    LaunchedEffect(menuComponent) {
+        menuComponent.refreshData()
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -49,6 +54,7 @@ fun HomeView(menuComponent: MenuComponent, onNavigateToSettings: () -> Unit) {
         // SecondHeader
         SecondHeader(
             menusState = menusState,
+            selectedTabIndex = selectedTabIndex,
             onTabSelected = { index -> selectedTabIndex = index }
         )
 
@@ -120,7 +126,7 @@ fun Header(title: String, notificationsCount: Int, onNavigateToSettings: () -> U
 }
 
 @Composable
-fun SecondHeader(menusState: ApiResult<List<Menu>>, onTabSelected: (Int) -> Unit) {
+fun SecondHeader(menusState: ApiResult<List<Menu>>, selectedTabIndex: Int, onTabSelected: (Int) -> Unit) {
     // 메뉴 이름 목록을 가져옵니다. null이거나 빈 목록일 수 있으므로 기본값을 제공합니다.
     val menuNames = when (menusState) {
         is ApiResult.Success -> {
@@ -132,7 +138,7 @@ fun SecondHeader(menusState: ApiResult<List<Menu>>, onTabSelected: (Int) -> Unit
 
     // TabRow를 구성합니다.
     TabRow(
-        selectedTabIndex = 0, // 기본적으로 첫 번째 탭을 선택합니다.
+        selectedTabIndex = selectedTabIndex, // 기본적으로 첫 번째 탭을 선택합니다.
         backgroundColor = LightGreen,
         contentColor = Color.Black
     ) {
@@ -146,7 +152,7 @@ fun SecondHeader(menusState: ApiResult<List<Menu>>, onTabSelected: (Int) -> Unit
         } else {
             menuNames.forEachIndexed { index, menuName ->
                 Tab(
-                    selected = false, // 선택된 탭의 로직을 추가할 수 있습니다.
+                    selected = selectedTabIndex == index, // 선택된 탭의 로직을 추가할 수 있습니다.
                     onClick = { onTabSelected(index) },
                     text = { Text(menuName) }
                 )
