@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Notifications
@@ -35,7 +36,11 @@ import data.BottomMenu
 
 
 @Composable
-fun HomeView(menuComponent: MenuComponent, onNavigateToSettings: () -> Unit) {
+fun HomeView(
+    menuComponent: MenuComponent,
+    onNavigateToSettings: () -> Unit,
+    onAddButtonClicked: () -> Unit
+) {
 //    val menusState by menuComponent.menus.subscribeAsState()
     val menusState by menuComponent.menus.collectAsState()
     val bottomMenusState by menuComponent.bottomMenus.collectAsState()
@@ -49,7 +54,12 @@ fun HomeView(menuComponent: MenuComponent, onNavigateToSettings: () -> Unit) {
         modifier = Modifier.fillMaxSize()
     ) {
         // Header
-        Header(title = "My App", notificationsCount = 3, onNavigateToSettings = onNavigateToSettings)
+        Header(
+            title = "My App",
+            notificationsCount = 3,
+            onNavigateToSettings = onNavigateToSettings,
+            onAddButtonClicked = onAddButtonClicked
+        )
 
         // SecondHeader
         SecondHeader(
@@ -72,7 +82,12 @@ fun HomeView(menuComponent: MenuComponent, onNavigateToSettings: () -> Unit) {
 }
 
 @Composable
-fun Header(title: String, notificationsCount: Int, onNavigateToSettings: () -> Unit) {
+fun Header(
+    title: String,
+    notificationsCount: Int,
+    onNavigateToSettings: () -> Unit,
+    onAddButtonClicked: () -> Unit
+) {
     TopAppBar(
         title = {
             Text(
@@ -87,6 +102,9 @@ fun Header(title: String, notificationsCount: Int, onNavigateToSettings: () -> U
 //            }
 //        },
         actions = {
+            IconButton(onClick = onAddButtonClicked) {
+                Icon(Icons.Filled.Add, contentDescription = "Add")
+            }
             IconButton(onClick = onNavigateToSettings) {
                 Icon(Icons.Filled.Settings, contentDescription = "Settings")
             }

@@ -22,11 +22,16 @@ fun App(root: RootComponent) {
             when(val instance = child.instance) {
                 is RootComponent.Child.HomeView -> HomeView(
                     instance.component,
-                    onNavigateToSettings = { root.navigate(RootComponent.Configuration.SettingsView) }
+                    onNavigateToSettings = { root.navigate(RootComponent.Configuration.SettingsView) },
+                    onAddButtonClicked = instance.onAddButtonClicked
                 )
                 is RootComponent.Child.SettingsView -> {
                     val settingsComponent = instance.component
                     settingsComponent.showView()
+                }
+                is RootComponent.Child.GalleryView -> {
+                    val galleryComponent = instance.component
+                    galleryComponent.showView()
                 }
             }
         }

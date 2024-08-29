@@ -7,13 +7,16 @@ import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import compose.data.use_case.MenuUseCase
+import compose.permissions.PermissionsController
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class RootComponent(
-    componentContext: ComponentContext
+    componentContext: ComponentContext,
+    private val permissionsController: PermissionsController
 ): ComponentContext by componentContext, KoinComponent  { //여기에 KoinComponent 집어넣으니까 commonMain에서 inject함수가 먹음
 
     private val defaultDispatcher: CoroutineDispatcher by inject()
@@ -41,16 +44,25 @@ class RootComponent(
                     componentContext = context,
                     defaultDispatcher = defaultDispatcher,
                     menuUseCase = menuUseCase
-                )
+                ),
+                onAddButtonClicked = { navigate(Configuration.GalleryView) }
             )
-        is Configuration.SettingsView -> Child.SettingsView(
+            is Configuration.SettingsView -> Child.SettingsView(
                 SettingsComponent(
                     rootComponent = this,
                     componentContext = context,
                     defaultDispatcher = defaultDispatcher
                 )
             )
+            is Configuration.GalleryView -> Child.GalleryView(
+                GalleryComponent(
+                    rootComponent = this,
+                    componentContext = context,
+                    permissionsController = permissionsController
+                )
+            )
         }
+
     }
 
     fun navigate(configuration: Configuration) {
@@ -62,17 +74,18 @@ class RootComponent(
     }
 
     sealed class Child {
-        data class HomeView(val component: MenuComponent): Child()
+        data class HomeView(val component: MenuComponent, val onAddButtonClicked: () -> Unit): Child()
         data class SettingsView(val component: SettingsComponent): Child()
+        data class GalleryView(val component: GalleryComponent): Child()
     }
 
     @Serializable
     sealed class Configuration {
-
         @Serializable
         data object HomeView : Configuration()
-
         @Serializable
         data object SettingsView : Configuration()
+        @Serializable
+        data object GalleryView: Configuration()
     }
 }

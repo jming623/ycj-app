@@ -82,7 +82,7 @@ class SettingsComponent(
         val menuName by menuName.collectAsState()
         val menuOrder by menuOrder.collectAsState()
         val notificationMsg by notificationMessage.collectAsState()
-        Napier.d("notificationMsg > ${notificationMsg}")
+//        Napier.d("notificationMsg > ${notificationMsg}")
 
         SettingsView(
             onBackButtonClick = { onBackButtonClick() },
