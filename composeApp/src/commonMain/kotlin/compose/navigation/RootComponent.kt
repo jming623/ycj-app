@@ -6,6 +6,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
+import compose.data.repos.GalleryRepository
 import compose.data.use_case.MenuUseCase
 import compose.permissions.PermissionsController
 import io.github.aakira.napier.Napier
@@ -21,6 +22,7 @@ class RootComponent(
 
     private val defaultDispatcher: CoroutineDispatcher by inject()
     private val menuUseCase: MenuUseCase by inject()
+    private val galleryRepository: GalleryRepository by inject()
 
     private val navigation = StackNavigation<Configuration>()
 
@@ -58,7 +60,8 @@ class RootComponent(
                 GalleryComponent(
                     rootComponent = this,
                     componentContext = context,
-                    permissionsController = permissionsController
+                    permissionsController = permissionsController,
+                    galleryRepository = galleryRepository
                 )
             )
         }

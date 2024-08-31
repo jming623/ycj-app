@@ -12,6 +12,7 @@ import compose.util.White
 import compose.util.PastelBlue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.graphics.Color
@@ -25,17 +26,6 @@ fun GalleryView(
 ) {
     Scaffold(
         topBar = {
-//            TopAppBar(
-//                title = { Text("Gallery") },
-//                navigationIcon = {
-//                    IconButton(onClick = onBackButtonClick) {
-//                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-//                    }
-//                },
-//                backgroundColor = PastelBlue,
-//                contentColor = White,
-//                elevation = 4.dp
-//            )
             TopAppBar(
                 backgroundColor = Black,
                 contentColor = White,
@@ -79,15 +69,67 @@ fun GalleryView(
                 }
 
                 // 아래 갤러리 영역
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1.3f)
-                        .border(2.dp, Color.Gray) // 보더로 영역 구분
-                        .background(Color.DarkGray), // 일단 배경색으로 영역만 표시
-                    contentAlignment = Alignment.Center
+                        .background(Color.DarkGray)
                 ) {
-                    Text("Gallery Thumbnails", color = Color.White) // 임시 텍스트로 영역 표시
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // "최근" 텍스트와 아래 화살표 아이콘
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "최근",
+                                color = Color.White,
+                                style = MaterialTheme.typography.subtitle1
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Dropdown",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        // "여러항목 선택" 텍스트와 아이콘
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "여러 항목 선택",
+                                color = Color.White,
+                                style = MaterialTheme.typography.subtitle1,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Camera",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .border(2.dp, Color.Gray)
+                            .background(Color.DarkGray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Gallery Thumbnails", color = Color.White)
+                    }
                 }
             }
         }

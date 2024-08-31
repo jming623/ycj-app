@@ -1,6 +1,7 @@
 package com.jetbrains.ycjapp
 
 import android.app.Application
+import com.jetbrains.ycjapp.di.androidModule
 import compose.di.initKoin
 import initLogger
 import io.github.aakira.napier.Napier
@@ -16,7 +17,9 @@ class MainApplication: Application() {
         initLogger()
 
         Napier.d("Try Init Koin")
-        initKoin {
+        initKoin (
+            additionalModules = listOf(androidModule)
+        ) {
             androidContext(this@MainApplication)
             androidLogger()
         }

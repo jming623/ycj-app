@@ -39,6 +39,8 @@ kotlin {
             implementation(libs.decompose)
             implementation(libs.decompose.jetbrains)
             implementation(libs.napier)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.svg)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -115,5 +117,6 @@ android {
 dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.android)
     implementation(libs.androidx.material3.android)
+    implementation(libs.androidx.camera.core)
 }
 

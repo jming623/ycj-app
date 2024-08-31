@@ -5,11 +5,9 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import compose.permissions.PermissionsController
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import io.github.aakira.napier.Napier
 
@@ -21,15 +19,16 @@ class AndroidPermissionsController(
     override fun requestPostNotification() {
         val POST_NOTIFICATION_PERMISSION_CODE = 1001
 
+        // TIRAMISU = Android13, 13버전 이하는 별도의 알림 권한을 요청하지 않아도 됨.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), POST_NOTIFICATION_PERMISSION_CODE)
             }
         }
-        // 다른 버전에서의 알림 권한 요청 코드 추가 필요
     }
 
     override fun hasGalleryPermission(): Boolean {
+        // UPSIDE_DOWN_CAKE = 14, TIRAMISU = 13, S = 12
         return when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
                 ContextCompat.checkSelfPermission(
@@ -58,6 +57,7 @@ class AndroidPermissionsController(
     }
 
     override fun checkAndRequestPermissions(onPermissionsResult: () -> Unit) {
+        // UPSIDE_DOWN_CAKE = 14, TIRAMISU = 13, S = 12
         try {
             when {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
