@@ -15,15 +15,31 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import compose.navigation.GalleryComponent
 import compose.util.Black
+import compose.util.SvgLoader
+import androidx.compose.foundation.Image
+import io.github.aakira.napier.Napier
 
 @Composable
 fun GalleryView(
     galleryComponent: GalleryComponent,
     onBackButtonClick: () -> Unit,
 ) {
+    val cameraIcon = remember { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(Unit) {
+        Napier.d("안녕")
+        val svgLoader = SvgLoader()
+
+        cameraIcon.value = svgLoader.loadSvgIcon("icons/camera_icon.svg")
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -111,12 +127,13 @@ fun GalleryView(
                                 style = MaterialTheme.typography.subtitle1,
                                 modifier = Modifier.padding(end = 8.dp)
                             )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Camera",
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
+                            cameraIcon.value?.let {
+                                Image(
+                                    bitmap = it,
+                                    contentDescription = "Camera Icon",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
                         }
                     }
 
