@@ -15,7 +15,7 @@ class GalleryComponent(
     componentContext: ComponentContext,
     private val permissionsController: PermissionsController,
     private val galleryRepository: GalleryRepository
-) {
+): ComponentContext by componentContext {
 
     init {
         Napier.d("GalleryComponent initialized")

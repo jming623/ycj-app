@@ -9,9 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import compose.util.White
-import compose.util.PastelBlue
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
@@ -22,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import compose.navigation.GalleryComponent
 import compose.util.Black
-import compose.util.SvgLoader
+import compose.service.image.SvgLoader
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,75 +50,71 @@ fun GalleryView(
         cameraIcon.value = svgLoader.loadSvgIcon("icons/camera_icon.svg")
     }
 
-    // ModalBottomSheetLayout을 통해 하단 시트와 메인 콘텐츠를 분리합니다.
-    @OptIn(ExperimentalMaterialApi::class)
-    ModalBottomSheetLayout(
-        sheetState = bottomSheetState,
-        sheetContent = {
-            // 하단 시트에 들어갈 내용
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-//                    .height(300.dp) // 하단 시트의 높이를 설정
-                    .background(Color.DarkGray),
-                horizontalAlignment = Alignment.CenterHorizontally
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                backgroundColor = Black,
+                contentColor = White,
+                elevation = 4.dp
             ) {
-                Spacer(modifier = Modifier.height(10.dp))
-                // 드래그 핸들
-                Box(
-                    modifier = Modifier
-                        .width(50.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(Color.Gray)
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+                // 왼쪽 끝의 X 버튼
+                IconButton(onClick = onBackButtonClick) {
+                    Icon(Icons.Default.Close, contentDescription = "Close")
+                }
+
+                // 중앙의 "새 게시물" 텍스트
+                Spacer(modifier = Modifier.weight(0.1f))
                 Text(
-                    text = "사진첩 선택",
-                    color = Color.White,
-                    style = MaterialTheme.typography.subtitle1,
-//                    modifier = Modifier.padding(16.dp)
+                    text = "새 게시물",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier.align(Alignment.CenterVertically)
                 )
-                // 여기에서 앨범 리스트 같은 추가 내용을 넣을 수 있음
+                Spacer(modifier = Modifier.weight(1f))
+
+                // 오른쪽 끝의 -> 아이콘
+                IconButton(onClick = { /* 작업 추가 */ }) {
+                    Icon(Icons.Default.ArrowForward, contentDescription = "Next")
+                }
             }
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    backgroundColor = Black,
-                    contentColor = White,
-                    elevation = 4.dp
-                ) {
-                    // 왼쪽 끝의 X 버튼
-                    IconButton(onClick = onBackButtonClick) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
-                    }
-
-                    // 중앙의 "새 게시물" 텍스트
-                    Spacer(modifier = Modifier.weight(0.1f))
-                    Text(
-                        text = "새 게시물",
-                        style = MaterialTheme.typography.h6,
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // 오른쪽 끝의 -> 아이콘
-                    IconButton(onClick = { /* 작업 추가 */ }) {
-                        Icon(Icons.Default.ArrowForward, contentDescription = "Next")
+        },
+        content = { innerPadding ->
+            @OptIn(ExperimentalMaterialApi::class)
+            ModalBottomSheetLayout( // ModalBottomSheetLayout을 Scaffold의 content에 위치
+                sheetState = bottomSheetState,
+                sheetContent = {
+                    // 하단 시트에 들어갈 내용
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(fraction = 1f) // 시트의 높이를 화면 전체로 강제 설정
+                            .background(Color.DarkGray),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        // 드래그 핸들
+                        Box(
+                            modifier = Modifier
+                                .width(50.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(Color.Gray)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "사진첩 선택",
+                            color = Color.White,
+                            style = MaterialTheme.typography.subtitle1,
+                        )
+                        // 여기에서 앨범 리스트 같은 추가 내용을 넣을 수 있음
                     }
                 }
-            },
-            content = { innerPadding ->
+            ) {
+                // 중간 Detail View 영역
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(0.dp)
-//                        .padding(innerPadding)
+                        .padding(innerPadding) // 패딩을 원래대로 적용
                 ) {
-                    // 중간 Detail View 영역
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -201,6 +195,8 @@ fun GalleryView(
                     }
                 }
             }
-        )
-    }
+        }
+    )
+
+
 }

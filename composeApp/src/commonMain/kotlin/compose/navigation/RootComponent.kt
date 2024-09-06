@@ -47,7 +47,7 @@ class RootComponent(
                     defaultDispatcher = defaultDispatcher,
                     menuUseCase = menuUseCase
                 ),
-                onAddButtonClicked = { navigate(Configuration.GalleryView) }
+                onAddButtonClicked = { navigate(Configuration.BoardView) }
             )
             is Configuration.SettingsView -> Child.SettingsView(
                 SettingsComponent(
@@ -62,6 +62,11 @@ class RootComponent(
                     componentContext = context,
                     permissionsController = permissionsController,
                     galleryRepository = galleryRepository
+                )
+            )
+            is Configuration.BoardView -> Child.BoardView(
+                BoardComponent(
+                    componentContext = context
                 )
             )
         }
@@ -80,6 +85,7 @@ class RootComponent(
         data class HomeView(val component: MenuComponent, val onAddButtonClicked: () -> Unit): Child()
         data class SettingsView(val component: SettingsComponent): Child()
         data class GalleryView(val component: GalleryComponent): Child()
+        data class BoardView(val component: BoardComponent): Child()
     }
 
     @Serializable
@@ -90,5 +96,7 @@ class RootComponent(
         data object SettingsView : Configuration()
         @Serializable
         data object GalleryView: Configuration()
+        @Serializable
+        data object BoardView: Configuration()
     }
 }

@@ -4,6 +4,7 @@ import com.arkivanov.decompose.extensions.compose.jetbrains.stack.Children
 import com.arkivanov.decompose.extensions.compose.jetbrains.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.jetbrains.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
+import compose.navigation.BoardComponent
 import compose.navigation.RootComponent
 import compose.ui.HomeView
 import compose.ui.SettingsView
@@ -32,6 +33,10 @@ fun App(root: RootComponent) {
                 is RootComponent.Child.GalleryView -> {
                     val galleryComponent = instance.component
                     galleryComponent.showView()
+                }
+                is RootComponent.Child.BoardView -> {
+                    val BoardComponent = instance.component
+                    BoardComponent.showView()
                 }
             }
         }

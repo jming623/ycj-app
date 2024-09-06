@@ -1,4 +1,4 @@
-package compose.util
+package compose.service.image
 
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
@@ -12,13 +12,11 @@ import coil.request.SuccessResult
 import io.github.aakira.napier.Napier
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.io.InputStream
 
 actual class SvgLoader : KoinComponent {
     private val imageLoader: ImageLoader by inject()
 
     actual suspend fun loadSvgIcon(resourcePath: String): ImageBitmap? {
-        Napier.d("여기를 타긴 타는거지??/")
         val context: Context = get()
 
         // "asset://" 스키마를 사용하여 리소스를 URI로 지정

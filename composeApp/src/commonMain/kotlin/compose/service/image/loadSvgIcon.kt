@@ -1,4 +1,4 @@
-package compose.util
+package compose.service.image
 
 import androidx.compose.ui.graphics.ImageBitmap
 
