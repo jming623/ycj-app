@@ -66,6 +66,7 @@ class RootComponent(
             )
             is Configuration.BoardView -> Child.BoardView(
                 BoardComponent(
+                    rootComponent = this,
                     componentContext = context
                 )
             )

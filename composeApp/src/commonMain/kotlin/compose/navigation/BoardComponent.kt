@@ -6,11 +6,18 @@ import compose.ui.BoardView
 import compose.ui.GalleryView
 
 class BoardComponent(
-    componentContext: ComponentContext,
+    private val rootComponent: RootComponent,
+    componentContext: ComponentContext
 ): ComponentContext by componentContext {
+
+    private fun onBackButtonClick() {
+        rootComponent.pop()
+    }
 
     @Composable
     fun showView() {
-        BoardView()
+        BoardView(
+            onBackButtonClick = { onBackButtonClick() },
+        )
     }
 }

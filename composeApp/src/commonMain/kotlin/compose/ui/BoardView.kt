@@ -3,6 +3,7 @@ package compose.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -10,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -21,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,17 +35,24 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
 @Composable
-fun BoardView() {
+fun BoardView(
+    onBackButtonClick: () -> Unit,
+) {
     var textState by remember { mutableStateOf("") }
-    var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    var imageBitmaps by remember { mutableStateOf<List<ImageBitmap>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        // 로컬 파일 경로를 넣어주세요
-        val imagePath = "/storage/emulated/0/DCIM/upload/iu_01.png"
+        // 로컬 파일의 경우 에뮬레이터로 사용될 디바이스의 DCIM/upload 디렉터리 내부에 있어야 함.
+        // 화면에서 사용될 이미지는 shared/src/commonMain/resouces/images 디렉터리에 존재. 복사해서 사용할 것.
+        val imagePaths = listOf(
+            "/storage/emulated/0/DCIM/upload/image_01.png",
+            "/storage/emulated/0/DCIM/upload/image_02.jpg",
+            "/storage/emulated/0/DCIM/upload/image_03.jpg"
+        )
 
         // 로컬 파일에서 이미지를 불러오는 부분
         withContext(Dispatchers.IO) {
-            imageBitmap = loadImageFromFile(imagePath)
+            imageBitmaps = imagePaths.mapNotNull { loadImageFromFile(it) }
         }
     }
 
@@ -58,12 +68,16 @@ fun BoardView() {
                 .verticalScroll(rememberScrollState())
         ) {
             // Header
-            HeaderSection()
+            HeaderSection(onBackButtonClick = onBackButtonClick)
 
             // Content Section
-            ContentSection(imageBitmap, textState) { newText ->
+            ContentSection(imageBitmaps, textState, onTextChanged = { newText ->
                 textState = newText
-            }
+            }, onRemoveImage = { index ->
+                val updatedImages = imageBitmaps.toMutableList()
+                updatedImages.removeAt(index)
+                imageBitmaps = updatedImages
+            })
 
             // Menu Section
             // MenuSection()
@@ -77,14 +91,14 @@ fun BoardView() {
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(onBackButtonClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = { /* 뒤로가기 동작 */ }) {
+        IconButton(onClick = onBackButtonClick) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "뒤로가기",
@@ -102,22 +116,66 @@ fun HeaderSection() {
 }
 
 @Composable
-fun ContentSection(imageBitmap: ImageBitmap?, textState: String, onTextChanged: (String) -> Unit) {
+fun ContentSection(
+    imageBitmaps: List<ImageBitmap>,
+    textState: String,
+    onTextChanged: (String) -> Unit,
+    onRemoveImage: (Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
         // 이미지가 있으면 표시
-        if (imageBitmap != null) {
-            Image(
-                bitmap = imageBitmap,
-                contentDescription = "로컬에서 불러온 이미지",
+        if (imageBitmaps.isNotEmpty()) {
+            LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp) // 이미지 크기 조정
-                    .padding(bottom = 16.dp)
-            )
+                    .height(230.dp)
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ){
+                items(imageBitmaps.size) {index ->
+                    val bitmap = imageBitmaps[index]
+                    val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat() // 이미지의 비율 계산
+
+                    // 비율에 따라 컨테이너 크기 결정
+                    val containerHeight = 200.dp
+                    val containerWidth = containerHeight * aspectRatio
+
+                    Box(
+                        modifier = Modifier
+                            .width(containerWidth)
+                            .height(containerHeight)
+                    ){
+                        Image(
+                            bitmap = bitmap,
+                            contentDescription = "로컬에서 불러온 이미지",
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentScale = ContentScale.Crop // 이미지가 크기에 맞게 잘리도록 설정
+                        )
+                        // 삭제 버튼
+                        IconButton(
+                            onClick = { onRemoveImage(index) },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(7.dp)
+//                                .offset(x = (-12).dp, y = 12.dp) // 사진의 우측 상단 안쪽으로 위치 조정
+                                .background(Color.Black, shape = RoundedCornerShape(50))
+                                .size(20.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "이미지 삭제",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // TextField
