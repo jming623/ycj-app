@@ -19,7 +19,10 @@ fun App(root: RootComponent) {
             animation = stackAnimation(slide())
         ) { child ->
             when(val instance = child.instance) {
-                is RootComponent.Child.HomeView -> HomeView(instance.component)
+                is RootComponent.Child.HomeView -> {
+                    val homeComponent = instance.component
+                    homeComponent.showView()
+                }
             }
         }
     }
