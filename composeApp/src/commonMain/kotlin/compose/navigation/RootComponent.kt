@@ -67,8 +67,9 @@ class RootComponent(
             is Configuration.BoardView -> Child.BoardView(
                 BoardComponent(
                     rootComponent = this,
-                    componentContext = context
-                )
+                    componentContext = context,
+                    moveToGallery = { navigate(Configuration.GalleryView) }
+                ),
             )
         }
 

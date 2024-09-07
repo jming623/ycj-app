@@ -2,6 +2,7 @@ package compose.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
@@ -10,7 +11,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,15 +25,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import compose.service.image.SvgLoader
 import compose.service.image.loadImageFromFile
 import compose.util.SkylineBlue
-import io.ktor.http.ContentDisposition.Companion.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -37,11 +42,25 @@ import kotlinx.coroutines.withContext
 @Composable
 fun BoardView(
     onBackButtonClick: () -> Unit,
+    onGalleryButtonClick: () -> Unit,
 ) {
     var textState by remember { mutableStateOf("") }
     var imageBitmaps by remember { mutableStateOf<List<ImageBitmap>>(emptyList()) }
+    val icons = remember { mutableStateOf<List<ImageBitmap?>>(emptyList()) }
 
     LaunchedEffect(Unit) {
+        val svgLoader = SvgLoader()
+        val galleryIcon = svgLoader.loadSvgIcon("icons/gallery_icon.svg")
+        val locationIcon = svgLoader.loadSvgIcon("icons/location_icon.svg")
+        val personIcon = svgLoader.loadSvgIcon("icons/person_icon.svg")
+
+
+        icons.value = listOf(
+            galleryIcon,
+            locationIcon,
+            personIcon
+        )
+
         // 로컬 파일의 경우 에뮬레이터로 사용될 디바이스의 DCIM/upload 디렉터리 내부에 있어야 함.
         // 화면에서 사용될 이미지는 shared/src/commonMain/resouces/images 디렉터리에 존재. 복사해서 사용할 것.
         val imagePaths = listOf(
@@ -79,8 +98,15 @@ fun BoardView(
                 imageBitmaps = updatedImages
             })
 
-            // Menu Section
-            // MenuSection()
+//             Menu Section
+            MenuSection(icons = icons.value) { menuIdx ->
+                when (menuIdx) {
+                    0 -> onGalleryButtonClick()
+                    1 -> println("위치 추가 페이지로 이동")
+                    2 -> println("사람 태그 페이지로 이동")
+                    else -> println("알 수 없는 메뉴 선택")
+                }
+            }
 
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -184,20 +210,88 @@ fun ContentSection(
             onValueChange = onTextChanged,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
-                .padding(16.dp),
+                .padding(2.dp),
             decorationBox = { innerTextField ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(8.dp)
+//                        .padding(8.dp)
                 ) {
                     if (textState.isEmpty()) {
-                        Text("문구를 작성하거나 설문을 추가하세요...")
+                        Text(
+                            "문구를 작성하거나 설문을 추가하세요...",
+                            fontSize = 12.sp,
+                            color = Color.Gray // 가이드 문구 스타일 조정
+                        )
                     }
                     innerTextField()
                 }
+            },
+            maxLines = Int.MAX_VALUE,
+            singleLine = false
+        )
+    }
+}
+
+@Composable
+fun MenuSection(icons: List<ImageBitmap?>, onMenuClick: (Int) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+    ) {
+        // 구분을 위한 얇은 회색 선
+//        HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
+        HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
+        Spacer(modifier = Modifier.height(3.dp))
+
+        // 메뉴 항목들
+
+        if (icons.isNotEmpty() && icons.size >= 3) {
+            MenuItem(icon = icons[0]!!, title = "사진 추가") {
+                onMenuClick(0)
             }
+            MenuItem(icon = icons[1]!!, title = "위치 추가") {
+                onMenuClick(1)
+            }
+            MenuItem(icon = icons[2]!!, title = "사람 태그") {
+                onMenuClick(2)
+            }
+        }
+    }
+}
+
+@Composable
+fun MenuItem(icon: ImageBitmap, title: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 좌측 아이콘
+        Image(
+            bitmap = icon,
+            contentDescription = title,
+            modifier = Modifier
+                .size(30.dp)
+                .padding(2.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        // 메뉴명
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = "화살표",
+            modifier = Modifier.size(24.dp),
+            tint = Color.Gray
         )
     }
 }
