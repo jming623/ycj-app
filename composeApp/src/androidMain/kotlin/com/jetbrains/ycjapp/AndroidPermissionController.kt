@@ -106,8 +106,6 @@ class AndroidPermissionsController(
         }catch (e: Exception) {
             Napier.e("권한 요청 중 예외 발생: ${e.message}")
             onPermissionsDenied()
-        }finally {
-            onPermissionsResult()
         }
     }
     override fun onPermissionsGranted() {

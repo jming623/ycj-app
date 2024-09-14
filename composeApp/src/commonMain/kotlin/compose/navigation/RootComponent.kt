@@ -34,6 +34,12 @@ class RootComponent(
         childFactory = ::createChild
     )
 
+    val boardComponent = BoardComponent(
+        rootComponent = this,
+        componentContext = componentContext,
+        moveToGallery = { navigate(Configuration.GalleryView) }
+    )
+
     @OptIn(ExperimentalDecomposeApi::class)
     private fun createChild(
         config: Configuration,
@@ -65,11 +71,7 @@ class RootComponent(
                 )
             )
             is Configuration.BoardView -> Child.BoardView(
-                BoardComponent(
-                    rootComponent = this,
-                    componentContext = context,
-                    moveToGallery = { navigate(Configuration.GalleryView) }
-                ),
+                boardComponent
             )
         }
 

@@ -23,9 +23,19 @@ import compose.util.Black
 import compose.service.image.SvgLoader
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import com.seiko.imageloader.rememberImagePainter
+import compose.data.repos.MediaFile
+import compose.util.PastelBlue
+import compose.util.SkylineBlue
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 
@@ -40,14 +50,36 @@ fun GalleryView(
     * 이는 향후 릴리스에서 동작이 달라질 수 있고, 다음 버전의 Compose에서 동작하지 않을 수 있음을 의미한다.
     * */
     val cameraIcon = remember { mutableStateOf<ImageBitmap?>(null) }
+    val multiPickListIcon = remember { mutableStateOf<ImageBitmap?>(null) }
     @OptIn(ExperimentalMaterialApi::class)
     val bottomSheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val scope = rememberCoroutineScope()
+    
+    // GalleryComponent에서 받아온 MediaFile을 저장할 변수
+    var mediaFiles = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
+    // 선택된 이미지를 저장할 변수, 상단 DetailView에는 리스트에 가장 마지막 요소가 보여진다.
+    val selectedImages = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
+
+    // 여러 항목을 보여주기 위한 상태를 담는 변수
+    val isMultiSelectMode = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        Napier.d("안녕")
+        Napier.d("실행됨")
         val svgLoader = SvgLoader()
         cameraIcon.value = svgLoader.loadSvgIcon("icons/camera_icon.svg")
+        multiPickListIcon.value = svgLoader.loadSvgIcon("icons/multi_picklist_icon.svg")
+        val files = galleryComponent.fetchRecentMediaFiles()
+        mediaFiles.value = files
+
+        if (files.isNotEmpty()) {
+            selectedImages.value = listOf(files.first())
+        }
+    }
+    LaunchedEffect(isMultiSelectMode.value) {
+        if (!isMultiSelectMode.value && selectedImages.value.size > 1) {
+            // Multi-select 모드가 비활성화되고 여러 항목이 선택되어 있을 때
+            selectedImages.value = listOf(selectedImages.value.last())
+        }
     }
 
     Scaffold(
@@ -122,7 +154,18 @@ fun GalleryView(
                             .background(Color.LightGray),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Detail View", color = Color.White)
+                        val imageToShow = selectedImages.value.lastOrNull()
+                        if (imageToShow != null) {
+                            Image(
+                                painter = rememberImagePainter(imageToShow.uri),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()  // 꽉 차게 표시
+                            )
+                        } else {
+                            Text("Detail View", color = Color.White)
+                        }
                     }
 
                     // 아래 갤러리 영역
@@ -130,22 +173,24 @@ fun GalleryView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1.3f)
-                            .background(Color.DarkGray)
+                            .background(Color.Black)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // "최근" 텍스트와 아래 화살표 아이콘
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f).clickable {
-                                    scope.launch {
-                                        bottomSheetState.show() // 하단 시트 표시
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        scope.launch {
+                                            bottomSheetState.show() // 하단 시트 표시
+                                        }
                                     }
-                                }
                             ) {
                                 Text(
                                     text = "최근",
@@ -159,38 +204,93 @@ fun GalleryView(
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
-
-                            // "여러항목 선택" 텍스트와 아이콘
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.End,
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text(
-                                    text = "여러 항목 선택",
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.subtitle1,
-                                    modifier = Modifier.padding(end = 8.dp)
-                                )
-                                cameraIcon.value?.let {
-                                    Image(
-                                        bitmap = it,
-                                        contentDescription = "Camera Icon",
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                                // 여러 항목 선택 아이콘 (IconButton 대신 Box로 구현)
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)  // 원의 크기 설정
+                                        .clip(CircleShape)  // 원형으로 클리핑
+                                        .background(if (isMultiSelectMode.value) SkylineBlue else Color.DarkGray)
+                                        .clickable { isMultiSelectMode.value = !isMultiSelectMode.value },  // 클릭 시 모드 전환
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    multiPickListIcon.value?.let {
+                                        Image(
+                                            bitmap = it,  // ImageBitmap 사용
+                                            contentDescription = "Multi PickList Icon",
+                                            modifier = Modifier.size(22.dp),  // 아이콘 크기 설정 (원의 크기보다 약간 작게)
+                                            colorFilter = ColorFilter.tint(Color.White)  // 아이콘 색상은 항상 흰색으로 유지
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                // 카메라 아이콘 (IconButton 대신 Box로 구현)
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)  // 원의 크기 설정
+                                        .clip(CircleShape)  // 원형으로 클리핑
+                                        .background(Color.DarkGray)  // 배경색 설정
+                                        .clickable { /* 카메라 아이콘 클릭 동작 추가 */ },  // 클릭 이벤트
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    cameraIcon.value?.let {
+                                        Image(
+                                            bitmap = it,  // ImageBitmap 사용
+                                            contentDescription = "Camera Icon",
+                                            modifier = Modifier.size(22.dp),  // 아이콘 크기 설정 (원의 크기보다 약간 작게)
+                                            colorFilter = ColorFilter.tint(Color.White)  // 아이콘 색상은 항상 흰색으로 유지
+                                        )
+                                    }
                                 }
                             }
                         }
-
-                        Box(
+                        // 갤러리에서 불러온 사진이 표시됨.
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(4),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .weight(1f)
-                                .border(2.dp, Color.Gray)
-                                .background(Color.DarkGray),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Gallery Thumbnails", color = Color.White)
+                                .padding(1.dp)
+                                .weight(1f) // 슬라이드 가능하도록 세로 스크롤
+                        ){
+                            items(mediaFiles.value) { mediaFile ->
+                                val isSelected = selectedImages.value.contains(mediaFile)
+                                Image(
+                                    painter = rememberImagePainter(mediaFile.uri),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .padding(1.dp)
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .clickable {
+                                            if (isMultiSelectMode.value) {
+                                                // 여러 항목 선택 모드
+                                                selectedImages.value = if (isSelected) {
+                                                    // 이미 선택된 경우 리스트에서 제거
+                                                    selectedImages.value - mediaFile
+                                                } else {
+                                                    // 선택되지 않은 경우 리스트에 추가
+                                                    selectedImages.value + mediaFile
+                                                }
+                                            } else {
+                                                // 단일 항목 선택 모드: 선택한 이미지로 교체
+                                                selectedImages.value = listOf(mediaFile)
+                                            }
+                                        }
+                                        // 선택된 이미지는 하이라이트
+                                        .border(
+                                            width = if (isSelected) 2.dp else 0.dp,
+                                            color = if (isSelected) Color.White else Color.Transparent
+                                        )
+                                )
+                            }
                         }
                     }
                 }

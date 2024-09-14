@@ -27,6 +27,12 @@ class MainActivity : ComponentActivity(){
                 Napier.d("onPermissionsDenied실행")
                 permissionsController.onPermissionsDenied()
             }
+
+            permissionsController = AndroidPermissionsController(this, permissionLauncher).apply {
+                checkAndRequestPermissions {
+                    Napier.d("위치 권한이 부여됨")
+                }
+            }
         }
 
         // AndroidPermissionsController 초기화

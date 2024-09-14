@@ -52,7 +52,7 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
         }
 
         // 최근 항목 폴더 추가
-        addRecentFolder(foldersMap)
+//        addRecentFolder(foldersMap)
 
         // 즐겨찾기 항목을 추가
         addFavoriteFolder(foldersMap)
@@ -72,32 +72,32 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
         return@withContext folderList
     }
 
-    private fun addRecentFolder(foldersMap: MutableMap<String, GalleryFolder>) {
-        val projection = arrayOf(
-            MediaStore.Images.Media._ID,
-            MediaStore.Images.Media.DATE_ADDED
-        )
-        // 현재는 200개로 설정
-        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
-
-        val cursor = context.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            null,
-            null,
-            sortOrder
-        )
-
-        cursor?.use {
-            var count = 0
-            while (cursor.moveToNext() && count < 200) {
-                count++
-            }
-            if (count > 0) {
-                foldersMap["recent"] = GalleryFolder("recent", "최근 항목", count)
-            }
-        }
-    }
+//    private fun addRecentFolder(foldersMap: MutableMap<String, GalleryFolder>) {
+//        val projection = arrayOf(
+//            MediaStore.Images.Media._ID,
+//            MediaStore.Images.Media.DATE_ADDED
+//        )
+//        // 현재는 200개로 설정
+//        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+//
+//        val cursor = context.contentResolver.query(
+//            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+//            projection,
+//            null,
+//            null,
+//            sortOrder
+//        )
+//
+//        cursor?.use {
+//            var count = 0
+//            while (cursor.moveToNext() && count < 200) {
+//                count++
+//            }
+//            if (count > 0) {
+//                foldersMap["recent"] = GalleryFolder("recent", "최근 항목", count)
+//            }
+//        }
+//    }
     private fun addFavoriteFolder(foldersMap: MutableMap<String, GalleryFolder>) {
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
@@ -132,13 +132,20 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
             MediaStore.Images.Media.DISPLAY_NAME,
             MediaStore.Images.Media.MIME_TYPE
         )
-
-        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
-        val selectionArgs = arrayOf(folderId)
-        val sortOrder = MediaStore.Images.Media.DATE_ADDED + " DESC"
-
         val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val mediaFiles = mutableListOf<MediaFile>()
+
+        val selection: String?
+        val selectionArgs: Array<String>?
+        val sortOrder = MediaStore.Images.Media.DATE_ADDED + " DESC"
+
+        if (folderId == "recent") {
+            selection = null  // 전체 데이터를 대상으로 쿼리
+            selectionArgs = null
+        }else {
+            selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"  // 특정 폴더만 쿼리
+            selectionArgs = arrayOf(folderId)
+        }
 
         val cursor = context.contentResolver.query(
             uri,

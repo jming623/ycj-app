@@ -33,7 +33,7 @@ class MenuComponent(
 //    }
 
     init {
-        refreshData()
+//        refreshData()
     }
 
     fun refreshData() {

@@ -43,6 +43,7 @@ import kotlinx.coroutines.withContext
 fun BoardView(
     onBackButtonClick: () -> Unit,
     onGalleryButtonClick: () -> Unit,
+    selectedMedia: List<String>
 ) {
     var textState by remember { mutableStateOf("") }
     var imageBitmaps by remember { mutableStateOf<List<ImageBitmap>>(emptyList()) }
