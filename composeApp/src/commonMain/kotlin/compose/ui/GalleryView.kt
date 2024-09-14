@@ -28,15 +28,19 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.sp
 import com.seiko.imageloader.rememberImagePainter
 import compose.data.repos.MediaFile
-import compose.util.PastelBlue
+import compose.ui.components.PopupMessage
 import compose.util.SkylineBlue
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -63,6 +67,9 @@ fun GalleryView(
     // 여러 항목을 보여주기 위한 상태를 담는 변수
     val isMultiSelectMode = remember { mutableStateOf(false) }
 
+    // 사진을 N개 이상 등록하면 사용자에게 보여줄 경고 문구
+    var showPopup by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         Napier.d("실행됨")
         val svgLoader = SvgLoader()
@@ -79,6 +86,14 @@ fun GalleryView(
         if (!isMultiSelectMode.value && selectedImages.value.size > 1) {
             // Multi-select 모드가 비활성화되고 여러 항목이 선택되어 있을 때
             selectedImages.value = listOf(selectedImages.value.last())
+        }
+    }
+    // 10개 초과 시 팝업을 보여주는 함수
+    fun showSelectionLimitPopup() {
+        scope.launch {
+            showPopup = true   // 팝업을 표시
+            delay(2000)        // 2초 동안 유지
+            showPopup = false  // 팝업을 숨김
         }
     }
 
@@ -260,10 +275,8 @@ fun GalleryView(
                         ){
                             items(mediaFiles.value) { mediaFile ->
                                 val isSelected = selectedImages.value.contains(mediaFile)
-                                Image(
-                                    painter = rememberImagePainter(mediaFile.uri),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
+                                val selectionIndex = selectedImages.value.indexOf(mediaFile) + 1
+                                Box(
                                     modifier = Modifier
                                         .padding(1.dp)
                                         .fillMaxWidth()
@@ -271,32 +284,72 @@ fun GalleryView(
                                         .clip(RoundedCornerShape(4.dp))
                                         .clickable {
                                             if (isMultiSelectMode.value) {
-                                                // 여러 항목 선택 모드
-                                                selectedImages.value = if (isSelected) {
-                                                    // 이미 선택된 경우 리스트에서 제거
-                                                    selectedImages.value - mediaFile
+                                                if (isSelected) {
+                                                    selectedImages.value -= mediaFile
+                                                } else if (selectedImages.value.size < 10) {
+                                                    selectedImages.value += mediaFile
                                                 } else {
-                                                    // 선택되지 않은 경우 리스트에 추가
-                                                    selectedImages.value + mediaFile
+                                                    showSelectionLimitPopup()  // 10개 초과시 팝업 표시
                                                 }
                                             } else {
-                                                // 단일 항목 선택 모드: 선택한 이미지로 교체
                                                 selectedImages.value = listOf(mediaFile)
                                             }
                                         }
-                                        // 선택된 이미지는 하이라이트
-                                        .border(
-                                            width = if (isSelected) 2.dp else 0.dp,
-                                            color = if (isSelected) Color.White else Color.Transparent
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Image(
+                                            painter = rememberImagePainter(mediaFile.uri),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
                                         )
-                                )
+
+                                        // 다중 선택 모드가 활성화되어 있고 이미지가 선택된 경우, 우측 상단에 선택 순서 표시
+                                        if (isMultiSelectMode.value && isSelected) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)  // 이미지의 오른쪽 상단에 배치
+                                                    .padding(5.dp)
+                                                    .clip(CircleShape)  // 동그라미 모양
+                                                    .background(SkylineBlue)  // 배경색
+                                                    .size(18.dp),  // 동그라미 크기 설정
+                                                contentAlignment = Alignment.Center  // 숫자를 중앙에 배치
+                                            ) {
+                                                Text(
+                                                    modifier = Modifier.offset(y = (-1).dp),
+                                                    text = selectionIndex.toString(),  // 선택 순서를 텍스트로 표시
+                                                    color = Color.White,
+                                                    fontSize = 10.sp,  // 텍스트 크기 설정
+                                                    style = MaterialTheme.typography.body2  // 텍스트 스타일 설정
+                                                )
+                                            }
+                                        }
+                                        // 선택된 이미지는 하이라이트
+                                        if (isSelected) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .border(
+                                                        width = 2.dp,
+                                                        color = Color.White,
+                                                        shape = RoundedCornerShape(4.dp)
+                                                    )
+                                                    .fillMaxSize()
+                                            )
+                                        }
+                                    }
+
+                                }
                             }
                         }
                     }
                 }
             }
+            PopupMessage(
+                message = "최대 10개의 사진이나 동영상을 포함할 수 있습니다.",
+                isVisible = showPopup,  // 팝업을 표시할지 여부
+            )
         }
     )
-
-
 }
