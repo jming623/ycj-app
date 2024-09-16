@@ -48,7 +48,6 @@ fun HomeView(
 
     LaunchedEffect(menuComponent) {
         menuComponent.refreshData()
-
     }
 
     Column(

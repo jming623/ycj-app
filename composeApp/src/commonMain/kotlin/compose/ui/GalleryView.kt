@@ -23,6 +23,7 @@ import compose.util.Black
 import compose.service.image.SvgLoader
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.sp
 import com.seiko.imageloader.rememberImagePainter
+import compose.data.repos.GalleryFolder
 import compose.data.repos.MediaFile
 import compose.ui.components.PopupMessage
 import compose.util.SkylineBlue
@@ -61,8 +63,10 @@ fun GalleryView(
     
     // GalleryComponent에서 받아온 MediaFile을 저장할 변수
     var mediaFiles = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
-    // 선택된 이미지를 저장할 변수, 상단 DetailView에는 리스트에 가장 마지막 요소가 보여진다.
+    // 선택된 이미지를 저장할 변수
     val selectedImages = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
+    // 사용자가 클릭한 DetailView에 보여질 현재 이미지
+    var currentDetailImage by remember { mutableStateOf<MediaFile?>(null) }
 
     // 여러 항목을 보여주기 위한 상태를 담는 변수
     val isMultiSelectMode = remember { mutableStateOf(false) }
@@ -70,15 +74,19 @@ fun GalleryView(
     // 사진을 N개 이상 등록하면 사용자에게 보여줄 경고 문구
     var showPopup by remember { mutableStateOf(false) }
 
+    // 사진첩 폴더를 저장하는 변수 (GalleryFolder List)
+    var galleryFolders by remember { mutableStateOf<List<GalleryFolder>?>(null) }
+
     LaunchedEffect(Unit) {
         Napier.d("실행됨")
         val svgLoader = SvgLoader()
         cameraIcon.value = svgLoader.loadSvgIcon("icons/camera_icon.svg")
         multiPickListIcon.value = svgLoader.loadSvgIcon("icons/multi_picklist_icon.svg")
-        val files = galleryComponent.fetchRecentMediaFiles()
+        val files = galleryComponent.getMediaFilesInFolder("recent")
         mediaFiles.value = files
 
         if (files.isNotEmpty()) {
+            currentDetailImage = files.first()
             selectedImages.value = listOf(files.first())
         }
     }
@@ -96,6 +104,14 @@ fun GalleryView(
             showPopup = false  // 팝업을 숨김
         }
     }
+
+    // 폴더 데이터를 가져오는 함수
+    suspend fun fetchGalleryFolders() {
+        if (galleryFolders == null) {
+            galleryFolders = galleryComponent.fetchGalleryFolders() // 폴더 데이터를 fetch
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -152,7 +168,60 @@ fun GalleryView(
                             color = Color.White,
                             style = MaterialTheme.typography.subtitle1,
                         )
-                        // 여기에서 앨범 리스트 같은 추가 내용을 넣을 수 있음
+                        // Gallery Folder List View
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(4),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color.DarkGray)
+                                .padding(8.dp)
+                        ){
+                            galleryFolders?.let { folders ->
+                                items(folders) { folder ->
+                                    // 2x2 배열로 사진 표시 (LazyVerticalGrid 대신 Row와 Column 사용)
+                                    Column(
+                                        modifier = Modifier.padding(4.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        // 2x2 배열로 사진 표시
+                                        LazyVerticalGrid(
+                                            columns = GridCells.Fixed(2),
+                                            modifier = Modifier
+                                                .aspectRatio(1f)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(Color.LightGray)
+                                                .padding(4.dp)
+                                        ) {
+                                            items(folder.recentImages.take(4)) { image ->
+                                                Image(
+                                                    painter = rememberImagePainter(
+                                                        image.uri
+                                                    ),
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .aspectRatio(1f)
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                )
+                                            }
+                                        }
+                                        // 앨범 이름
+                                        Text(
+                                            text = folder.name,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.subtitle2,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                        // 콘텐츠 개수
+                                        Text(
+                                            text = "${folder.mediaCount}",
+                                            color = Color.Gray,
+                                            style = MaterialTheme.typography.body2
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             ) {
@@ -169,18 +238,14 @@ fun GalleryView(
                             .background(Color.LightGray),
                         contentAlignment = Alignment.Center
                     ) {
-                        val imageToShow = selectedImages.value.lastOrNull()
-                        if (imageToShow != null) {
+                        currentDetailImage?.let {
                             Image(
-                                painter = rememberImagePainter(imageToShow.uri),
+                                painter = rememberImagePainter(it.uri),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()  // 꽉 차게 표시
+                                modifier = Modifier.fillMaxSize()
                             )
-                        } else {
-                            Text("Detail View", color = Color.White)
-                        }
+                        } ?: Text("Detail View", color = Color.White)
                     }
 
                     // 아래 갤러리 영역
@@ -203,6 +268,7 @@ fun GalleryView(
                                     .weight(1f)
                                     .clickable {
                                         scope.launch {
+                                            fetchGalleryFolders()
                                             bottomSheetState.show() // 하단 시트 표시
                                         }
                                     }
@@ -282,17 +348,27 @@ fun GalleryView(
                                         .fillMaxWidth()
                                         .aspectRatio(1f)
                                         .clip(RoundedCornerShape(4.dp))
-                                        .clickable {
+                                        .clickable (
+                                            indication = null,  // Ripple 애니메이션 제거
+                                            interactionSource = remember { MutableInteractionSource() }  // 클릭 피드백 제거
+                                        ){
                                             if (isMultiSelectMode.value) {
-                                                if (isSelected) {
+                                                if (isSelected && mediaFile == currentDetailImage) {
+                                                    // 이미 선택된 이미지이고, DetailView에 표시 중인 이미지인 경우 선택 해제
                                                     selectedImages.value -= mediaFile
+                                                    currentDetailImage = selectedImages.value.lastOrNull()
+                                                } else if (isSelected && mediaFile != currentDetailImage) {
+                                                    // 이미 선택된 이미지지만 현재 DetailView에 표시되지 않은 경우, DetailView에 표시만 변경
+                                                    currentDetailImage = mediaFile
                                                 } else if (selectedImages.value.size < 10) {
                                                     selectedImages.value += mediaFile
+                                                    currentDetailImage = mediaFile
                                                 } else {
                                                     showSelectionLimitPopup()  // 10개 초과시 팝업 표시
                                                 }
                                             } else {
                                                 selectedImages.value = listOf(mediaFile)
+                                                currentDetailImage = mediaFile
                                             }
                                         }
                                 ) {
@@ -325,6 +401,14 @@ fun GalleryView(
                                                     style = MaterialTheme.typography.body2  // 텍스트 스타일 설정
                                                 )
                                             }
+                                        }
+                                        // currentDetailImage와 일치하는 이미지에 투명한 오버레이 추가
+                                        if (mediaFile == currentDetailImage) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.White.copy(alpha = 0.5f)) // 투명한 오버레이
+                                            )
                                         }
                                         // 선택된 이미지는 하이라이트
                                         if (isSelected) {

@@ -67,7 +67,7 @@ fun BoardView(
         val imagePaths = listOf(
             "/storage/emulated/0/DCIM/upload/image_01.png",
             "/storage/emulated/0/DCIM/upload/image_02.jpg",
-            "/storage/emulated/0/DCIM/upload/image_03.jpg"
+            "/storage/emulated/0/DCIM/upload/image_03.gif"
         )
 
         // 로컬 파일에서 이미지를 불러오는 부분

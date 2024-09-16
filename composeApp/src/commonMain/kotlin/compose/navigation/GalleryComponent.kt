@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.arkivanov.decompose.ComponentContext
+import compose.data.repos.GalleryFolder
 import compose.data.repos.GalleryRepository
 import compose.data.repos.MediaFile
 import compose.permissions.PermissionsController
@@ -12,7 +13,9 @@ import io.github.aakira.napier.Napier
 import compose.ui.GalleryView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class GalleryComponent(
     private val rootComponent: RootComponent,
@@ -29,29 +32,21 @@ class GalleryComponent(
 
     init {
         Napier.d("GalleryComponent initialized")
-        checkPermissionsAndFetchGallery()
-//        permissionsController.checkAndRequestPermissions{
-//            Napier.d("Permissions granted")
-//            fetchGalleryFolders()
-//        }
     }
 
     private fun checkPermissionsAndFetchGallery() {
         if (permissionsController.hasGalleryPermission()) {
             Napier.d("Permissions already granted")
-            fetchGalleryFolders()
         } else {
             permissionsController.checkAndRequestPermissions {
                 Napier.d("Permissions granted")
-                fetchGalleryFolders()
             }
         }
     }
 
-    private fun fetchGalleryFolders() {
-        scope.launch {
-            val folders = galleryRepository.getGalleryFolders()
-
+    suspend fun fetchGalleryFolders(): List<GalleryFolder>{
+        return withContext(Dispatchers.IO) {
+            val folders = galleryRepository.getFoldersWithRecentImages()
             if (folders.isEmpty()) {
                 Napier.d("No gallery folders found.")
             } else {
@@ -60,12 +55,12 @@ class GalleryComponent(
                     Napier.d("Folder ID: ${folder.id}, Name: ${folder.name}, Media Count: ${folder.mediaCount}")
                 }
             }
-            // UI 갱신 로직 추가
+            return@withContext folders
         }
     }
 
-    suspend fun fetchRecentMediaFiles(): List<MediaFile> {
-        val recentMediaFiles = galleryRepository.getMediaFilesInFolder("recent")
+    suspend fun getMediaFilesInFolder(folderName: String): List<MediaFile> {
+        val recentMediaFiles = galleryRepository.getMediaFilesInFolder(folderName)
         if (recentMediaFiles.isNotEmpty()) {
             Napier.d("Recent media files count: ${recentMediaFiles.size}")
         } else {
