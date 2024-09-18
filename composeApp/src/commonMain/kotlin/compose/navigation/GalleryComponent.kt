@@ -70,12 +70,17 @@ class GalleryComponent(
     }
 
     // GalleryView에서 미디어 파일을 선택했을 때 BoardComponent에 전달
-    fun onMediaSelected(mediaFiles: List<String>) {
-        rootComponent.boardComponent.setSelectedMedia(mediaFiles) // BoardComponent에 전달
-        rootComponent.pop() // GalleryView에서 돌아가기
+//    fun onMediaSelected(mediaFiles: List<String>) {
+//        rootComponent.boardComponent.setSelectedMedia(mediaFiles) // BoardComponent에 전달
+//        rootComponent.pop() // GalleryView에서 돌아가기
+//    }
+
+    fun submit(mediaFiles: List<String>) {
+        // EditMediaView로 이동
+        rootComponent.navigate(RootComponent.Configuration.EditMediaView)
     }
 
-    private fun onBackButtonClick() {
+    fun onBackButtonClick() {
         rootComponent.pop()
     }
 
@@ -83,7 +88,6 @@ class GalleryComponent(
     fun showView() {
         GalleryView(
             galleryComponent = this,
-            onBackButtonClick = { onBackButtonClick() },
         )
     }
 }

@@ -20,11 +20,14 @@ class RootComponent(
     private val permissionsController: PermissionsController
 ): ComponentContext by componentContext, KoinComponent  { //여기에 KoinComponent 집어넣으니까 commonMain에서 inject함수가 먹음
 
-    private val defaultDispatcher: CoroutineDispatcher by inject()
-    private val menuUseCase: MenuUseCase by inject()
-    private val galleryRepository: GalleryRepository by inject()
-
+    // Create Component
     private val navigation = StackNavigation<Configuration>()
+    private val componentFactory = ComponentFactory(this, componentContext)
+    private val menuComponent = componentFactory.createMenuComponent()
+    private val settingsComponent = componentFactory.createSettingsComponent()
+    private val galleryComponent = componentFactory.createGalleryComponent(permissionsController)
+    private val boardComponent = componentFactory.createBoardComponent()
+    private val editMediaComponent = componentFactory.createEditMediaComponent()
 
     val childStack = childStack(
         source = navigation,
@@ -34,12 +37,6 @@ class RootComponent(
         childFactory = ::createChild
     )
 
-    val boardComponent = BoardComponent(
-        rootComponent = this,
-        componentContext = componentContext,
-        moveToGallery = { navigate(Configuration.GalleryView) }
-    )
-
     @OptIn(ExperimentalDecomposeApi::class)
     private fun createChild(
         config: Configuration,
@@ -47,32 +44,13 @@ class RootComponent(
     ): Child {
         return when(config) {
             Configuration.HomeView -> Child.HomeView(
-                MenuComponent(
-                    rootComponent = this,
-                    componentContext = context,
-                    defaultDispatcher = defaultDispatcher,
-                    menuUseCase = menuUseCase
-                ),
+                menuComponent,
                 onAddButtonClicked = { navigate(Configuration.BoardView) }
             )
-            is Configuration.SettingsView -> Child.SettingsView(
-                SettingsComponent(
-                    rootComponent = this,
-                    componentContext = context,
-                    defaultDispatcher = defaultDispatcher
-                )
-            )
-            is Configuration.GalleryView -> Child.GalleryView(
-                GalleryComponent(
-                    rootComponent = this,
-                    componentContext = context,
-                    permissionsController = permissionsController,
-                    galleryRepository = galleryRepository
-                )
-            )
-            is Configuration.BoardView -> Child.BoardView(
-                boardComponent
-            )
+            is Configuration.SettingsView -> Child.SettingsView(settingsComponent)
+            is Configuration.GalleryView -> Child.GalleryView(galleryComponent)
+            is Configuration.BoardView -> Child.BoardView(boardComponent)
+            is Configuration.EditMediaView -> Child.EditMediaView(editMediaComponent)
         }
 
     }
@@ -90,6 +68,7 @@ class RootComponent(
         data class SettingsView(val component: SettingsComponent): Child()
         data class GalleryView(val component: GalleryComponent): Child()
         data class BoardView(val component: BoardComponent): Child()
+        data class EditMediaView(val component: EditMediaComponent): Child()
     }
 
     @Serializable
@@ -102,5 +81,7 @@ class RootComponent(
         data object GalleryView: Configuration()
         @Serializable
         data object BoardView: Configuration()
+        @Serializable
+        data object EditMediaView: Configuration()
     }
 }

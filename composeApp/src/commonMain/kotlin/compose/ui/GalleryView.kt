@@ -52,7 +52,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun GalleryView(
     galleryComponent: GalleryComponent,
-    onBackButtonClick: () -> Unit,
 ) {
     /*
     * @OptIn(ExperimentalMaterialApi::class) <- 실험적(Experimental) API로 분류된 기능을 사용할 때 경고를 무시하기 위해 사용.
@@ -66,7 +65,7 @@ fun GalleryView(
     val scope = rememberCoroutineScope()
     
     // GalleryComponent에서 받아온 MediaFile을 저장할 변수
-    var mediaFiles = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
+    val mediaFiles = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
     // 선택된 이미지를 저장할 변수
     val selectedImages = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
     // 선택된 폴더명을 저장할 변수
@@ -146,7 +145,7 @@ fun GalleryView(
                 elevation = 4.dp
             ) {
                 // 왼쪽 끝의 X 버튼
-                IconButton(onClick = onBackButtonClick) {
+                IconButton(onClick = { galleryComponent.onBackButtonClick() }) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
                 }
 

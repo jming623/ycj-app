@@ -32,6 +32,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import compose.navigation.BoardComponent
+import compose.navigation.GalleryComponent
 import compose.service.image.SvgLoader
 import compose.service.image.loadImageFromFile
 import compose.util.SkylineBlue
@@ -41,9 +43,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun BoardView(
-    onBackButtonClick: () -> Unit,
-    onGalleryButtonClick: () -> Unit,
-    selectedMedia: List<String>
+    boardComponent: BoardComponent
 ) {
     var textState by remember { mutableStateOf("") }
     var imageBitmaps by remember { mutableStateOf<List<ImageBitmap>>(emptyList()) }
@@ -88,7 +88,7 @@ fun BoardView(
                 .verticalScroll(rememberScrollState())
         ) {
             // Header
-            HeaderSection(onBackButtonClick = onBackButtonClick)
+            HeaderSection(boardComponent = boardComponent)
 
             // Content Section
             ContentSection(imageBitmaps, textState, onTextChanged = { newText ->
@@ -102,7 +102,7 @@ fun BoardView(
 //             Menu Section
             MenuSection(icons = icons.value) { menuIdx ->
                 when (menuIdx) {
-                    0 -> onGalleryButtonClick()
+                    0 -> boardComponent.onGalleryButtonClick()
                     1 -> println("위치 추가 페이지로 이동")
                     2 -> println("사람 태그 페이지로 이동")
                     else -> println("알 수 없는 메뉴 선택")
@@ -118,14 +118,14 @@ fun BoardView(
 }
 
 @Composable
-fun HeaderSection(onBackButtonClick: () -> Unit) {
+fun HeaderSection(boardComponent: BoardComponent) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBackButtonClick) {
+        IconButton(onClick = { boardComponent.onBackButtonClick() } ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "뒤로가기",

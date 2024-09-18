@@ -9,7 +9,6 @@ import compose.ui.GalleryView
 class BoardComponent(
     private val rootComponent: RootComponent,
     componentContext: ComponentContext,
-    private val moveToGallery: () -> Unit
 ): ComponentContext by componentContext {
 
     // 선택된 미디어 파일을 관리하는 리스트
@@ -20,29 +19,27 @@ class BoardComponent(
         selectedMedia.value = media
     }
 
-    // 선택된 미디어 파일을 가져오는 함수
-    fun getSelectedMedia(): List<String> {
-        return selectedMedia.value
-    }
+//    // 선택된 미디어 파일을 가져오는 함수
+//    fun getSelectedMedia(): List<String> {
+//        return selectedMedia.value
+//    }
 
     // 공유 버튼 클릭 시 호출할 처리 함수
     fun shareMedia() {
         println("서버로 전송할 미디어 파일: ${selectedMedia.value}")
     }
 
-    private fun onBackButtonClick() {
+    fun onBackButtonClick() {
         rootComponent.pop()
     }
-    private fun onGalleryButtonClick() {
-        moveToGallery()
+    fun onGalleryButtonClick() {
+        rootComponent.navigate(RootComponent.Configuration.GalleryView)
     }
 
     @Composable
     fun showView() {
         BoardView(
-            onBackButtonClick = { onBackButtonClick() },
-            onGalleryButtonClick = {onGalleryButtonClick() },
-            selectedMedia = getSelectedMedia()
+            boardComponent = this
         )
     }
 }
