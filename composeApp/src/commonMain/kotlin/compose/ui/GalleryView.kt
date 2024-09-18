@@ -23,10 +23,12 @@ import compose.util.Black
 import compose.service.image.SvgLoader
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.getValue
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.seiko.imageloader.rememberImagePainter
 import compose.data.repos.GalleryFolder
@@ -45,6 +48,7 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun GalleryView(
     galleryComponent: GalleryComponent,
@@ -65,6 +69,8 @@ fun GalleryView(
     var mediaFiles = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
     // 선택된 이미지를 저장할 변수
     val selectedImages = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
+    // 선택된 폴더명을 저장할 변수
+    var selectedFolderName by remember { mutableStateOf<String?>("최근") }
     // 사용자가 클릭한 DetailView에 보여질 현재 이미지
     var currentDetailImage by remember { mutableStateOf<MediaFile?>(null) }
 
@@ -109,6 +115,25 @@ fun GalleryView(
     suspend fun fetchGalleryFolders() {
         if (galleryFolders == null) {
             galleryFolders = galleryComponent.fetchGalleryFolders() // 폴더 데이터를 fetch
+        }
+    }
+
+    // 폴더 클릭 시 실행할 함수 정의
+    fun loadMediaFilesFromFolder(folder: GalleryFolder) {
+        scope.launch {
+            // 선택된 폴더명 수정
+            selectedFolderName = folder.name
+            // 선택된 폴더의 파일 Load
+            val files = galleryComponent.getMediaFilesInFolder(folder.id)
+            mediaFiles.value = files
+
+            // 여러사진을 선택하는 모드가 아니라면 currentDetailImage 변경
+            if (!isMultiSelectMode.value) {
+                currentDetailImage = mediaFiles.value.first()
+            }
+
+            // mediaFiles로드 후 바텀 시트 invisible
+            bottomSheetState.hide()
         }
     }
 
@@ -178,39 +203,34 @@ fun GalleryView(
                         ){
                             galleryFolders?.let { folders ->
                                 items(folders) { folder ->
-                                    // 2x2 배열로 사진 표시 (LazyVerticalGrid 대신 Row와 Column 사용)
                                     Column(
-                                        modifier = Modifier.padding(4.dp),
+                                        modifier = Modifier
+                                            .padding(4.dp)
+                                            .clickable{
+                                                loadMediaFilesFromFolder(folder)
+                                            },
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        // 2x2 배열로 사진 표시
-                                        LazyVerticalGrid(
-                                            columns = GridCells.Fixed(2),
-                                            modifier = Modifier
-                                                .aspectRatio(1f)
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(Color.LightGray)
-                                                .padding(4.dp)
-                                        ) {
-                                            items(folder.recentImages.take(4)) { image ->
-                                                Image(
-                                                    painter = rememberImagePainter(
-                                                        image.uri
-                                                    ),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .aspectRatio(1f)
-                                                        .clip(RoundedCornerShape(4.dp))
-                                                )
-                                            }
+                                        folder.recentImages.firstOrNull()?.let { image ->
+                                            Image(
+                                                painter = rememberImagePainter(image.uri),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .aspectRatio(1f)
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(Color.LightGray)
+                                                    .padding(4.dp)
+                                            )
                                         }
                                         // 앨범 이름
                                         Text(
                                             text = folder.name,
                                             color = Color.White,
                                             style = MaterialTheme.typography.subtitle2,
-                                            modifier = Modifier.padding(top = 4.dp)
+                                            modifier = Modifier.padding(top = 4.dp),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                         // 콘텐츠 개수
                                         Text(
@@ -265,7 +285,7 @@ fun GalleryView(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .weight(0.7f)
                                     .clickable {
                                         scope.launch {
                                             fetchGalleryFolders()
@@ -273,22 +293,41 @@ fun GalleryView(
                                         }
                                     }
                             ) {
-                                Text(
-                                    text = "최근",
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.subtitle1
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = "Dropdown",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f) // 전체 가로 공간에서 텍스트가 차지하는 영역
+                                ) {
+                                    // 텍스트와 아이콘을 한 Row에 배치하여 텍스트가 스크롤되면 아이콘은 붙어 있게 처리
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.horizontalScroll(rememberScrollState())
+                                    ) {
+                                        // 선택된 폴더 이름 텍스트
+                                        selectedFolderName?.let {
+                                            Text(
+                                                text = it,
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.subtitle1,
+                                                maxLines = 1,
+                                                modifier = Modifier.padding(end = 4.dp), // 텍스트와 아이콘 간격 설정
+                                                overflow = TextOverflow.Clip // 텍스트가 잘리지 않고 스크롤 가능하게 설정
+                                            )
+                                        }
+
+                                        // 텍스트 옆에 붙어 있는 Dropdown 아이콘
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowDropDown,
+                                            contentDescription = "Dropdown",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.End,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(0.3f)
                             ) {
                                 // 여러 항목 선택 아이콘 (IconButton 대신 Box로 구현)
                                 Box(
