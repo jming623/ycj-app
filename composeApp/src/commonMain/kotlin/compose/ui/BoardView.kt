@@ -46,6 +46,7 @@ fun BoardView(
     boardComponent: BoardComponent
 ) {
     var textState by remember { mutableStateOf("") }
+    // 이 변수가 RootComponent의 selectedImages로 변경되어야 함.
     var imageBitmaps by remember { mutableStateOf<List<ImageBitmap>>(emptyList()) }
     val icons = remember { mutableStateOf<List<ImageBitmap?>>(emptyList()) }
 

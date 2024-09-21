@@ -1,14 +1,20 @@
 package compose.navigation
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.push
 import compose.data.repos.GalleryRepository
+import compose.data.repos.MediaFile
 import compose.data.use_case.MenuUseCase
 import compose.permissions.PermissionsController
+import compose.util.ImageManager
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.serialization.Serializable
@@ -28,6 +34,9 @@ class RootComponent(
     private val galleryComponent = componentFactory.createGalleryComponent(permissionsController)
     private val boardComponent = componentFactory.createBoardComponent()
     private val editMediaComponent = componentFactory.createEditMediaComponent()
+
+    var selectedImages by mutableStateOf<List<MediaFile>>(emptyList())
+    val imageManager = ImageManager(this)
 
     val childStack = childStack(
         source = navigation,
@@ -56,7 +65,18 @@ class RootComponent(
     }
 
     fun navigate(configuration: Configuration) {
-        navigation.push(configuration)
+        // 스택을 조작하는 navigate 함수 사용
+        navigation.navigate(
+            transformer = { stack ->
+                // 현재 스택에서 중복된 페이지를 제외하고, 중복된 페이지를 스택 끝에 추가
+                val filteredStack = stack.filter { it != configuration } // 중복된 페이지를 제거
+                filteredStack + configuration // 제거된 페이지를 다시 스택 끝에 추가
+            },
+            onComplete = { newStack, oldStack ->
+                // 여기에서 필요한 경우 추가 작업 수행
+                Napier.d("Navigation updated: $newStack")
+            }
+        )
     }
 
     fun pop() {

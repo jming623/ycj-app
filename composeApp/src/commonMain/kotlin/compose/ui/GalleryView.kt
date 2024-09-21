@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.seiko.imageloader.rememberImagePainter
 import compose.data.repos.GalleryFolder
 import compose.data.repos.MediaFile
+import compose.navigation.RootComponent
 import compose.ui.components.PopupMessage
 import compose.util.SkylineBlue
 import io.github.aakira.napier.Napier
@@ -51,6 +52,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun GalleryView(
+    rootComponent: RootComponent,
     galleryComponent: GalleryComponent,
 ) {
     /*
@@ -66,8 +68,6 @@ fun GalleryView(
     
     // GalleryComponent에서 받아온 MediaFile을 저장할 변수
     val mediaFiles = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
-    // 선택된 이미지를 저장할 변수
-    val selectedImages = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
     // 선택된 폴더명을 저장할 변수
     var selectedFolderName by remember { mutableStateOf<String?>("최근") }
     // 사용자가 클릭한 DetailView에 보여질 현재 이미지
@@ -92,13 +92,13 @@ fun GalleryView(
 
         if (files.isNotEmpty()) {
             currentDetailImage = files.first()
-            selectedImages.value = listOf(files.first())
+            rootComponent.imageManager.setSelectedImages(listOf(files.first()))
         }
     }
     LaunchedEffect(isMultiSelectMode.value) {
-        if (!isMultiSelectMode.value && selectedImages.value.size > 1) {
-            // Multi-select 모드가 비활성화되고 여러 항목이 선택되어 있을 때
-            selectedImages.value = listOf(selectedImages.value.last())
+        if (!isMultiSelectMode.value && rootComponent.imageManager.getSelectedImagesSize() > 1) {
+            // Multi-select 모드가 비활성화되고 여러 항목이 선택되어 있을 때, 마지막 이미지로 재설정
+            rootComponent.imageManager.setSelectedImageToLast()
         }
     }
     // 10개 초과 시 팝업을 보여주는 함수
@@ -159,7 +159,7 @@ fun GalleryView(
                 Spacer(modifier = Modifier.weight(1f))
 
                 // 오른쪽 끝의 -> 아이콘
-                IconButton(onClick = { /* 작업 추가 */ }) {
+                IconButton(onClick = { galleryComponent.moveToEditMediaView() }) {
                     Icon(Icons.Default.ArrowForward, contentDescription = "Next")
                 }
             }
@@ -378,8 +378,8 @@ fun GalleryView(
                                 .weight(1f) // 슬라이드 가능하도록 세로 스크롤
                         ){
                             items(mediaFiles.value) { mediaFile ->
-                                val isSelected = selectedImages.value.contains(mediaFile)
-                                val selectionIndex = selectedImages.value.indexOf(mediaFile) + 1
+                                val isSelected = rootComponent.imageManager.isSelectedImage(mediaFile)
+                                val selectionIndex = rootComponent.imageManager.getSelectedImageIndex(mediaFile)
                                 Box(
                                     modifier = Modifier
                                         .padding(1.dp)
@@ -393,19 +393,19 @@ fun GalleryView(
                                             if (isMultiSelectMode.value) {
                                                 if (isSelected && mediaFile == currentDetailImage) {
                                                     // 이미 선택된 이미지이고, DetailView에 표시 중인 이미지인 경우 선택 해제
-                                                    selectedImages.value -= mediaFile
-                                                    currentDetailImage = selectedImages.value.lastOrNull()
+                                                    rootComponent.imageManager.removeSelectedImage(mediaFile)
+                                                    currentDetailImage = rootComponent.imageManager.getLastSelectedImage()
                                                 } else if (isSelected && mediaFile != currentDetailImage) {
                                                     // 이미 선택된 이미지지만 현재 DetailView에 표시되지 않은 경우, DetailView에 표시만 변경
                                                     currentDetailImage = mediaFile
-                                                } else if (selectedImages.value.size < 10) {
-                                                    selectedImages.value += mediaFile
+                                                } else if (rootComponent.imageManager.getSelectedImagesSize() < 10) {
+                                                    rootComponent.imageManager.addSelectedImage(mediaFile)
                                                     currentDetailImage = mediaFile
                                                 } else {
                                                     showSelectionLimitPopup()  // 10개 초과시 팝업 표시
                                                 }
                                             } else {
-                                                selectedImages.value = listOf(mediaFile)
+                                                rootComponent.imageManager.setSelectedImages(listOf(mediaFile))
                                                 currentDetailImage = mediaFile
                                             }
                                         }
@@ -424,19 +424,19 @@ fun GalleryView(
                                         if (isMultiSelectMode.value && isSelected) {
                                             Box(
                                                 modifier = Modifier
-                                                    .align(Alignment.TopEnd)  // 이미지의 오른쪽 상단에 배치
+                                                    .align(Alignment.TopEnd)
                                                     .padding(5.dp)
-                                                    .clip(CircleShape)  // 동그라미 모양
-                                                    .background(SkylineBlue)  // 배경색
-                                                    .size(18.dp),  // 동그라미 크기 설정
-                                                contentAlignment = Alignment.Center  // 숫자를 중앙에 배치
+                                                    .clip(CircleShape)
+                                                    .background(SkylineBlue)
+                                                    .size(18.dp),
+                                                contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
                                                     modifier = Modifier.offset(y = (-1).dp),
-                                                    text = selectionIndex.toString(),  // 선택 순서를 텍스트로 표시
+                                                    text = selectionIndex.toString(),
                                                     color = Color.White,
-                                                    fontSize = 10.sp,  // 텍스트 크기 설정
-                                                    style = MaterialTheme.typography.body2  // 텍스트 스타일 설정
+                                                    fontSize = 10.sp,
+                                                    style = MaterialTheme.typography.body2
                                                 )
                                             }
                                         }

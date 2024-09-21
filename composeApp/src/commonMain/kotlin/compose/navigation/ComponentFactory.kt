@@ -27,7 +27,6 @@ class ComponentFactory (
             menuUseCase = menuUseCase
         )
     }
-
     fun createSettingsComponent(): SettingsComponent {
         return SettingsComponent(
             rootComponent = rootComponent,
@@ -35,7 +34,6 @@ class ComponentFactory (
             defaultDispatcher = defaultDispatcher
         )
     }
-
     fun createGalleryComponent(permissionsController: PermissionsController): GalleryComponent {
         return GalleryComponent(
             rootComponent = rootComponent,
@@ -44,19 +42,16 @@ class ComponentFactory (
             galleryRepository = galleryRepository
         )
     }
-
     fun createBoardComponent(): BoardComponent {
         return BoardComponent(
             rootComponent = rootComponent,
             componentContext = componentContext,
         )
     }
-
     fun createEditMediaComponent(): EditMediaComponent {
         return EditMediaComponent(
             rootComponent = rootComponent,
             componentContext = componentContext,
         )
     }
-
 }

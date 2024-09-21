@@ -41,10 +41,12 @@ kotlin {
             implementation(libs.napier)
             implementation(libs.coil.compose)
             implementation(libs.coil.svg)
+            implementation(libs.kamel.image)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.napier)
+            implementation(libs.kamel.image)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -72,6 +74,7 @@ kotlin {
             implementation(libs.koin.core)
 
             implementation(libs.napier)
+            implementation(libs.kamel.image)
         }
     }
 }
@@ -119,5 +122,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.android)
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.foundation.android)
 }
 

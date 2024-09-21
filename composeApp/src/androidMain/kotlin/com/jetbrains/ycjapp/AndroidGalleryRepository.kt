@@ -18,7 +18,8 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
         val projection = arrayOf(
             MediaStore.Images.Media._ID,
             MediaStore.Images.Media.DISPLAY_NAME,
-            MediaStore.Images.Media.MIME_TYPE
+            MediaStore.Images.Media.MIME_TYPE ,
+            MediaStore.Images.Media.DATA
         )
         val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val mediaFiles = mutableListOf<MediaFile>()
@@ -47,12 +48,14 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
             val mimeTypeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
+            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getString(idColumn)
                 val name = cursor.getString(nameColumn)
                 val mimeType = cursor.getString(mimeTypeColumn)
                 val contentUri = ContentUris.withAppendedId(uri, id.toLong())
+                val filePath = cursor.getString(dataColumn)
 
                 val mediaType = when {
                     mimeType.startsWith("image") -> MediaType.IMAGE
@@ -60,7 +63,7 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
                     else -> continue
                 }
 
-                mediaFiles.add(MediaFile(id, name, contentUri.toString(), mediaType))
+                mediaFiles.add(MediaFile(id, name, contentUri.toString(), filePath, mediaType))
             }
         }
 
@@ -163,7 +166,8 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
             MediaStore.Images.Media.BUCKET_ID,
             MediaStore.Images.Media._ID,
             MediaStore.Images.Media.DISPLAY_NAME,
-            MediaStore.Images.Media.MIME_TYPE
+            MediaStore.Images.Media.MIME_TYPE,
+            MediaStore.Images.Media.DATA
         )
 
         val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -184,6 +188,7 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
             val mimeTypeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
+            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
 
             while (cursor.moveToNext()) {
                 val bucketId = cursor.getString(bucketIdColumn)
@@ -191,6 +196,7 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
                 val name = cursor.getString(nameColumn)
                 val mimeType = cursor.getString(mimeTypeColumn)
                 val contentUri = ContentUris.withAppendedId(uri, id.toLong())
+                val filePath = cursor.getString(dataColumn)
 
                 val mediaType = when {
                     mimeType.startsWith("image") -> MediaType.IMAGE
@@ -198,7 +204,7 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
                     else -> continue
                 }
 
-                val mediaFile = MediaFile(id, name, contentUri.toString(), mediaType)
+                val mediaFile = MediaFile(id, name, contentUri.toString(), filePath, mediaType)
 
                 // 각 폴더에 최대 4개의 이미지만 추가
                 val imageList = recentImagesMap.getOrPut(bucketId) { mutableListOf() }
@@ -221,12 +227,14 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
             val idColumn = recentCursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             val nameColumn = recentCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
             val mimeTypeColumn = recentCursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
+            val dataColumn = recentCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
 
             while (recentCursor.moveToNext() && recentImageList.size < 4) {
                 val id = recentCursor.getString(idColumn)
                 val name = recentCursor.getString(nameColumn)
                 val mimeType = recentCursor.getString(mimeTypeColumn)
                 val contentUri = ContentUris.withAppendedId(uri, id.toLong())
+                val filePath = recentCursor.getString(dataColumn)
 
                 val mediaType = when {
                     mimeType.startsWith("image") -> MediaType.IMAGE
@@ -234,7 +242,7 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
                     else -> continue
                 }
 
-                recentImageList.add(MediaFile(id, name, contentUri.toString(), mediaType))
+                recentImageList.add(MediaFile(id, name, contentUri.toString(), filePath, mediaType))
             }
             recentImagesMap["recent"] = recentImageList
         }
@@ -253,12 +261,14 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
             val idColumn = favoritesCursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             val nameColumn = favoritesCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
             val mimeTypeColumn = favoritesCursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
+            val dataColumn = favoritesCursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
 
             while (favoritesCursor.moveToNext() && favoritesImageList.size < 4) {
                 val id = favoritesCursor.getString(idColumn)
                 val name = favoritesCursor.getString(nameColumn)
                 val mimeType = favoritesCursor.getString(mimeTypeColumn)
                 val contentUri = ContentUris.withAppendedId(uri, id.toLong())
+                val filePath = favoritesCursor.getString(dataColumn)
 
                 val mediaType = when {
                     mimeType.startsWith("image") -> MediaType.IMAGE
@@ -266,7 +276,7 @@ class AndroidGalleryRepository(private val context: Context) : GalleryRepository
                     else -> continue
                 }
 
-                favoritesImageList.add(MediaFile(id, name, contentUri.toString(), mediaType))
+                favoritesImageList.add(MediaFile(id, name, contentUri.toString(), filePath, mediaType))
             }
             recentImagesMap["favorites"] = favoritesImageList
         }

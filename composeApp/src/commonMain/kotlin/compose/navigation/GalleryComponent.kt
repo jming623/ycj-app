@@ -1,10 +1,9 @@
 package compose.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.router.stack.active
 import compose.data.repos.GalleryFolder
 import compose.data.repos.GalleryRepository
 import compose.data.repos.MediaFile
@@ -14,7 +13,6 @@ import compose.ui.GalleryView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class GalleryComponent(
@@ -23,12 +21,6 @@ class GalleryComponent(
     private val permissionsController: PermissionsController,
     private val galleryRepository: GalleryRepository
 ): ComponentContext by componentContext {
-
-    private val scope = CoroutineScope(Dispatchers.Main)
-
-    // recentMediaFiles를 상태로 관리
-    var recentMediaFiles by mutableStateOf<List<MediaFile>>(emptyList())
-        private set
 
     init {
         Napier.d("GalleryComponent initialized")
@@ -51,9 +43,9 @@ class GalleryComponent(
                 Napier.d("No gallery folders found.")
             } else {
                 Napier.d("Gallery folders found: ${folders.size}")
-                folders.forEach { folder ->
-                    Napier.d("Folder ID: ${folder.id}, Name: ${folder.name}, Media Count: ${folder.mediaCount}")
-                }
+//                folders.forEach { folder ->
+//                    Napier.d("Folder ID: ${folder.id}, Name: ${folder.name}, Media Count: ${folder.mediaCount}")
+//                }
             }
             return@withContext folders
         }
@@ -69,14 +61,8 @@ class GalleryComponent(
         return recentMediaFiles
     }
 
-    // GalleryView에서 미디어 파일을 선택했을 때 BoardComponent에 전달
-//    fun onMediaSelected(mediaFiles: List<String>) {
-//        rootComponent.boardComponent.setSelectedMedia(mediaFiles) // BoardComponent에 전달
-//        rootComponent.pop() // GalleryView에서 돌아가기
-//    }
-
-    fun submit(mediaFiles: List<String>) {
-        // EditMediaView로 이동
+    fun moveToEditMediaView() {
+        rootComponent.imageManager.getSelectedImagesToString()
         rootComponent.navigate(RootComponent.Configuration.EditMediaView)
     }
 
@@ -87,6 +73,7 @@ class GalleryComponent(
     @Composable
     fun showView() {
         GalleryView(
+            rootComponent = rootComponent,
             galleryComponent = this,
         )
     }

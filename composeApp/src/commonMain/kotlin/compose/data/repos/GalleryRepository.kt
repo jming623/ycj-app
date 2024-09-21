@@ -16,6 +16,7 @@ data class MediaFile(
     val id: String,
     val name: String,
     val uri: String,
+    val filePath: String,
     val mediaType: MediaType
 )
 
