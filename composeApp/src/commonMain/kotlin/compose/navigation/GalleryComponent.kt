@@ -67,7 +67,7 @@ class GalleryComponent(
     }
 
     fun onBackButtonClick() {
-        rootComponent.pop()
+        rootComponent.navigate(RootComponent.Configuration.BoardView)
     }
 
     @Composable

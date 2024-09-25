@@ -34,9 +34,9 @@ class RootComponent(
     private val galleryComponent = componentFactory.createGalleryComponent(permissionsController)
     private val boardComponent = componentFactory.createBoardComponent()
     private val editMediaComponent = componentFactory.createEditMediaComponent()
-
-    var selectedImages by mutableStateOf<List<MediaFile>>(emptyList())
-    val imageManager = ImageManager(this)
+    
+    // 게시글 등록 시, 이미지 처리를 관리할 클래스
+    val imageManager = ImageManager()
 
     val childStack = childStack(
         source = navigation,

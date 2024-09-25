@@ -21,6 +21,7 @@ class BoardComponent(
     @Composable
     fun showView() {
         BoardView(
+            rootComponent = rootComponent,
             boardComponent = this
         )
     }

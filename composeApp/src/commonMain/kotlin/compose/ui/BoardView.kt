@@ -32,22 +32,26 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import compose.data.repos.MediaFile
 import compose.navigation.BoardComponent
 import compose.navigation.GalleryComponent
+import compose.navigation.RootComponent
 import compose.service.image.SvgLoader
 import compose.service.image.loadImageFromFile
 import compose.util.SkylineBlue
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
 @Composable
 fun BoardView(
+    rootComponent: RootComponent,
     boardComponent: BoardComponent
 ) {
     var textState by remember { mutableStateOf("") }
     // 이 변수가 RootComponent의 selectedImages로 변경되어야 함.
-    var imageBitmaps by remember { mutableStateOf<List<ImageBitmap>>(emptyList()) }
+    var selectedImages by remember { mutableStateOf(rootComponent.imageManager.getSelectedImages()) }
     val icons = remember { mutableStateOf<List<ImageBitmap?>>(emptyList()) }
 
     LaunchedEffect(Unit) {
@@ -62,19 +66,6 @@ fun BoardView(
             locationIcon,
             personIcon
         )
-
-        // 로컬 파일의 경우 에뮬레이터로 사용될 디바이스의 DCIM/upload 디렉터리 내부에 있어야 함.
-        // 화면에서 사용될 이미지는 shared/src/commonMain/resouces/images 디렉터리에 존재. 복사해서 사용할 것.
-        val imagePaths = listOf(
-            "/storage/emulated/0/DCIM/upload/image_01.png",
-            "/storage/emulated/0/DCIM/upload/image_02.jpg",
-            "/storage/emulated/0/DCIM/upload/image_03.gif"
-        )
-
-        // 로컬 파일에서 이미지를 불러오는 부분
-        withContext(Dispatchers.IO) {
-            imageBitmaps = imagePaths.mapNotNull { loadImageFromFile(it) }
-        }
     }
 
     Box(
@@ -92,12 +83,11 @@ fun BoardView(
             HeaderSection(boardComponent = boardComponent)
 
             // Content Section
-            ContentSection(imageBitmaps, textState, onTextChanged = { newText ->
+            ContentSection(selectedImages, textState, onTextChanged = { newText ->
                 textState = newText
             }, onRemoveImage = { index ->
-                val updatedImages = imageBitmaps.toMutableList()
-                updatedImages.removeAt(index)
-                imageBitmaps = updatedImages
+                rootComponent.imageManager.removeSelectedImage(selectedImages[index])
+                selectedImages = rootComponent.imageManager.getSelectedImages()
             })
 
 //             Menu Section
@@ -114,7 +104,15 @@ fun BoardView(
         }
 
         // 공유 버튼
-        ShareButton(modifier = Modifier.align(Alignment.BottomCenter))
+        ShareButton(
+            modifier = Modifier.align(Alignment.BottomCenter)
+            ,onShareContent = {
+                Napier.d("게시글 공유")
+                Napier.d("작성한 글: ${textState}")
+                Napier.d("업로드한 이미지:")
+                rootComponent.imageManager.getSelectedImagesToString()
+            }
+        )
     }
 }
 
@@ -145,7 +143,7 @@ fun HeaderSection(boardComponent: BoardComponent) {
 
 @Composable
 fun ContentSection(
-    imageBitmaps: List<ImageBitmap>,
+    selectedImages: List<MediaFile>,
     textState: String,
     onTextChanged: (String) -> Unit,
     onRemoveImage: (Int) -> Unit
@@ -156,7 +154,7 @@ fun ContentSection(
             .padding(16.dp)
     ) {
         // 이미지가 있으면 표시
-        if (imageBitmaps.isNotEmpty()) {
+        if (selectedImages.isNotEmpty()) {
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -164,9 +162,14 @@ fun ContentSection(
                     .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ){
-                items(imageBitmaps.size) {index ->
-                    val bitmap = imageBitmaps[index]
-                    val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat() // 이미지의 비율 계산
+                items(selectedImages.size) {index ->
+                    val mediaFile = selectedImages[index]
+                    val bitmap = loadImageFromFile(mediaFile.filePath)
+                    val aspectRatio = if (bitmap != null) {
+                        bitmap.width.toFloat() / bitmap.height.toFloat()
+                    } else {
+                        1f // 기본 비율을 설정하거나 null 처리
+                    }
 
                     // 비율에 따라 컨테이너 크기 결정
                     val containerHeight = 200.dp
@@ -177,13 +180,15 @@ fun ContentSection(
                             .width(containerWidth)
                             .height(containerHeight)
                     ){
-                        Image(
-                            bitmap = bitmap,
-                            contentDescription = "로컬에서 불러온 이미지",
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentScale = ContentScale.Crop // 이미지가 크기에 맞게 잘리도록 설정
-                        )
+                        bitmap?.let {
+                            Image(
+                                bitmap = it,
+                                contentDescription = "로컬에서 불러온 이미지",
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentScale = ContentScale.Crop // 이미지가 크기에 맞게 잘리도록 설정
+                            )
+                        }
                         // 삭제 버튼
                         IconButton(
                             onClick = { onRemoveImage(index) },
@@ -299,7 +304,7 @@ fun MenuItem(icon: ImageBitmap, title: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun ShareButton(modifier: Modifier = Modifier) {
+fun ShareButton(modifier: Modifier = Modifier, onShareContent: () -> Unit) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -310,7 +315,7 @@ fun ShareButton(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(4.dp)) // 버튼과 경계선 사이 간격
 
         Button(
-            onClick = { /* 공유 동작 */ },
+            onClick = onShareContent, //버튼 클릭 시, 상위 컴포넌트에서 이벤트 처리
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 0.dp), // 아래 패딩 없음

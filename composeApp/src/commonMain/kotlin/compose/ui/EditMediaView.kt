@@ -1,10 +1,16 @@
 package compose.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.Icon
@@ -19,10 +25,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import compose.navigation.EditMediaComponent
 import compose.navigation.RootComponent
@@ -39,7 +50,7 @@ fun EditMediaView(
     rootComponent: RootComponent,
     editMediaComponent: EditMediaComponent,
 ) {
-    val selectedImages = remember { rootComponent.imageManager.getSelectedImages() }
+    var selectedImages by remember { mutableStateOf(rootComponent.imageManager.getSelectedImages()) }
 
     LaunchedEffect(Unit) {
         Napier.d("EditMediaView initialized")
@@ -59,7 +70,7 @@ fun EditMediaView(
 
                 // 중앙의 "새 게시물" 텍스트
                 Spacer(modifier = Modifier.weight(0.1f))
-                androidx.compose.material.Text(
+                Text(
                     text = "사진 수정",
                     style = MaterialTheme.typography.h6,
                     modifier = Modifier.align(Alignment.CenterVertically)
@@ -73,78 +84,131 @@ fun EditMediaView(
             }
         },
         content = { innerPadding ->
-            if (selectedImages.size == 1) {
-                val selectedImage = selectedImages.firstOrNull()
-
-                selectedImage?.let { mediaFile ->
-                    val file = filePathToFile(mediaFile.filePath)
-                    // File을 asyncPainterResource에 전달
-                    val painterResource = asyncPainterResource(data = file)
-
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Black)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // 상단 이미지 영역
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.LightGray)
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.5f) // 상단 50% 영역
+                            .padding(8.dp)
                     ) {
-                        when (painterResource) {
-                            is Resource.Loading -> {
-                                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        if (selectedImages.size == 1) {
+                            val selectedImage = selectedImages.firstOrNull()
+
+                            selectedImage?.let { mediaFile ->
+                                val file = filePathToFile(mediaFile.filePath)
+                                val painterResource = asyncPainterResource(data = file)
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(16.dp)
+                                        .background(Color.Black, shape = MaterialTheme.shapes.medium)
+                                        .clip(MaterialTheme.shapes.medium) // 둥근 모서리
+                                        .border(2.dp, Color.Gray)
+                                ) {
+                                    when (painterResource) {
+                                        is Resource.Loading -> {
+                                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                                        }
+                                        is Resource.Success -> {
+                                            KamelImage(
+                                                resource = painterResource,
+                                                contentDescription = null,
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Fit
+                                            )
+                                        }
+                                        is Resource.Failure -> {
+                                            Napier.e("이미지 로드 실패: ${file.toString()} - 이유: ${painterResource.exception.message}")
+                                            Text(
+                                                text = "이미지를 불러오는 데 실패했습니다.",
+                                                color = Color.Red,
+                                                modifier = Modifier.align(Alignment.Center)
+                                            )
+                                        }
+                                    }
+                                }
                             }
-                            is Resource.Success -> {
-                                KamelImage(
-                                    resource = painterResource,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            is Resource.Failure -> {
-                                Napier.e("이미지 로드 실패: ${file.toString()} - 이유: ${painterResource.exception.message}")
-                                Text(
-                                    text = "이미지를 불러오는 데 실패했습니다.",
-                                    color = Color.Red,
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
+                        } else {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(selectedImages.size) { idx ->
+                                    val file = filePathToFile(selectedImages[idx].filePath)
+                                    val painterResource = asyncPainterResource(data = file)
+
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.6f) // 전체 너비의 90%
+                                            .aspectRatio(1f)
+                                            .padding(8.dp)
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .background(Color.LightGray)
+                                            .border(2.dp, Color.Gray)
+                                    ) {
+                                        when (painterResource) {
+                                            is Resource.Loading -> {
+                                                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                                            }
+                                            is Resource.Success -> {
+                                                KamelImage(
+                                                    resource = painterResource,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Fit
+                                                )
+                                            }
+                                            is Resource.Failure -> {
+                                                Napier.e("이미지 로드 실패: ${file.toString()} - 이유: ${painterResource.exception.message}")
+                                                Text(
+                                                    text = "이미지를 불러오는 데 실패했습니다.",
+                                                    color = Color.Red,
+                                                    modifier = Modifier.align(Alignment.Center)
+                                                )
+                                            }
+                                        }
+
+                                        // 우상단 X 아이콘
+                                        IconButton(
+                                            onClick = {
+                                                rootComponent.imageManager.removeSelectedImage(selectedImages[idx])
+                                                selectedImages = rootComponent.imageManager.getSelectedImages()
+                                            },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(8.dp)
+                                                .size(24.dp)
+                                                .background(Color.Black.copy(alpha = 0.8f), shape = MaterialTheme.shapes.small)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Delete Image",
+                                                tint = Color.White // 흰색 X 아이콘
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            } else {
-                LazyRow(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(selectedImages.size) { idx ->
-                        val file = filePathToFile(selectedImages[idx].filePath)
-                        // File을 asyncPainterResource에 전달
-                        val painterResource = asyncPainterResource(data = file)
 
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .background(Color.LightGray)
-                        ) {
-                            when (painterResource) {
-                                is Resource.Loading -> {
-                                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                                }
-                                is Resource.Success -> {
-                                    KamelImage(
-                                        resource = painterResource,
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                                is Resource.Failure -> {
-                                    Napier.e("이미지 로드 실패: ${file.toString()} - 이유: ${painterResource.exception.message}")
-                                    Text(
-                                        text = "이미지를 불러오는 데 실패했습니다.",
-                                        color = Color.Red,
-                                        modifier = Modifier.align(Alignment.Center)
-                                    )
-                                }
-                            }
-                        }
-
+                    // 하단 콘텐츠 영역
+                    Spacer(modifier = Modifier.weight(1f)) // 하단 영역을 아래로 밀기 위한 Spacer
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.DarkGray)
+                    ) {
                     }
                 }
             }
