@@ -3,31 +3,43 @@ package compose.util
 import androidx.compose.ui.graphics.ImageBitmap
 import compose.data.repos.MediaFile
 import compose.navigation.RootComponent
+import compose.service.image.loadImageFromFile
 import io.github.aakira.napier.Napier
 
 class ImageManager() {
-    private var _selectedImages: List<MediaFile> = emptyList()
-    private var _updatedImages: List<ImageBitmap> = emptyList()
+    // MediaFile과 IamgeBitMap을 모두 관리
+    // MediaFile은 포함여부 확인 등의 각종 동작들을 하기 위해 사용하고, ImageBitMap은 아미지를 보여줄때만 사용
+    private var _selectedImages: List<Pair<MediaFile, ImageBitmap>> = emptyList()
 
-    /*
-     * 갤러리에서 이미지들을 불러와 화면에 뿌려주기 위한 Image를 관리하는 함수 모음
-     * 서로 다르게 유지하는 이유는 타입 특징과 관련이 있음.
-     * MediaFile: 가벼움, 여러 정보를 담고있음, 수정이 어려움.
-     * ImageBitmap: 비교적 무거움, 이미지에 대한 정보만 담고있음, 수정이 간편함.
-     */
+    // MediaFile을 ImageBitMap으로 변환하여 반환
+    fun mediaFileToImageBitmap(mediaFile: MediaFile): ImageBitmap? {
+        return loadImageFromFile(mediaFile.filePath)
+    }
+
     // 선택된 이미지 리스트 반환
-    fun getSelectedImages(): List<MediaFile> {
-        return _selectedImages
+    fun getSelectedImages(): Map<MediaFile, ImageBitmap> {
+        // associate함수: Iterable 컬렉션을 입력받아 Map으로 변환해주는 함수, Pair는 to를 기준으로 왼쪽은 Key가되고 오른쪽은 값이 됨.
+        return _selectedImages.associate { (mediaFile, imageBitmap) ->
+            mediaFile to imageBitmap
+        }
     }
     // 선택된 이미지 리스트의 모든 속성을 String으로 출력
     fun getSelectedImagesToString() {
-        _selectedImages.map { mediaFile ->
+        // (mediaFile, _) 는 Pair에서 mediaFile만 사용하고 ImageBitmap은 사용하지 않음.
+        _selectedImages.forEach { (mediaFile, _) ->
             Napier.d("ID: ${mediaFile.id}, Name: ${mediaFile.name}, URI: ${mediaFile.uri}, FilePath: ${mediaFile.filePath}, MediaType: ${mediaFile.mediaType}")
         }
     }
     // 이미지 리스트 전체 교체
     fun setSelectedImages(images: List<MediaFile>) {
-        _selectedImages = images
+        _selectedImages = images.mapNotNull { mediaFile ->
+            val imageBitmap = loadImageFromFile(mediaFile.filePath)
+            if (imageBitmap != null) {
+                mediaFile to imageBitmap // MediaFile과 ImageBitmap을 Pair로 변환
+            } else {
+                null // ImageBitmap이 null인 경우 제외
+            }
+        }
     }
     // 이미지 리스트를 마지막 이미지로 재설정
     fun setSelectedImageToLast() {
@@ -39,48 +51,46 @@ class ImageManager() {
     }
     // 이미지 리스트에 특정 이미지 포함 여부 확인
     fun isSelectedImage(mediaFile: MediaFile): Boolean {
-        return _selectedImages.contains(mediaFile)
+        return _selectedImages.any { it.first == mediaFile }
     }
     // 이미지 리스트에서 특정 이미지의 인덱스를 반환
     fun getSelectedImageIndex(mediaFile: MediaFile): Int {
-        return _selectedImages.indexOf(mediaFile) + 1
+        val index = _selectedImages.indexOfFirst { it.first == mediaFile }
+        return if (index != -1) index + 1 else -1
     }
     // 이미지 리스트에 특정 이미지 추가
     fun addSelectedImage(mediaFile: MediaFile) {
-        _selectedImages += mediaFile
+        val imageBitmap = loadImageFromFile(mediaFile.filePath)
+        if (imageBitmap != null) {
+            _selectedImages = _selectedImages + (mediaFile to imageBitmap)
+        }
     }
     // 이미지 리스트에 특정 이미지 제거
     fun removeSelectedImage(mediaFile: MediaFile) {
-        _selectedImages -= mediaFile
+        // filterNot함수는 리스트를 순회하며 조건에 맞지않는 항목을 새로운 리스트로 반환
+        _selectedImages = _selectedImages.filterNot { it.first == mediaFile }
+    }
+    // 이미지 리스트에 전체 이미지 제거
+    fun removeAllSelectedImage() {
+        _selectedImages = emptyList()
+    }
+    // 이미지 리스트의 첫번째 이미지를 반환
+    fun getFirstSelectedImage(): Map<MediaFile, ImageBitmap>? {
+        return _selectedImages.firstOrNull()?.let { mapOf(it.first to it.second) }
+    }
+    // 이미지 리스트의 마지막 이미지를 반환
+    fun getLastSelectedImage(): Map<Int, ImageBitmap>? {
+        return _selectedImages.lastOrNull()?.let { mapOf(it.first.id.toInt() to it.second) }
+    }
+    // 이미지 리스트의 마지막 ImageBitMap을 반환
+    fun getLastSelectedImageBitmap(): ImageBitmap? {
+        return _selectedImages.lastOrNull()?.second
+    }
+    // 이미지 리스트의 마지막 MediaFile을 반환
+    fun getLastSelectedImageMediaFile(): MediaFile? {
+        return _selectedImages.lastOrNull()?.first
     }
     /*
      * 사진 꾸미기를 통해 Edit되고, 실제 저장소에 저장될 Image를 관리하는 함수 모음
      */
-
-    // 게시글 이미지 리스트 반환
-    fun getUpdatedImages(): List<ImageBitmap> {
-        return _updatedImages
-    }
-    // 게시글 이미지 리스트 교체
-    fun setUpdatedImages(images: List<ImageBitmap>) {
-        _updatedImages = images
-    }
-    // 게시글 이미지 리스트를 String으로 출력
-    fun getUpdatedImagesToString() {
-        _updatedImages.map { image ->
-            Napier.d(image.toString())
-        }
-    }
-    // 게시글 이미지의 크기 반환
-    fun getUpdatedImagesSize(): Int {
-        return _updatedImages.size
-    }
-    // 게시글 이미지 리스트에 특정 이미지 추가
-    fun addUpdatedImage(image: ImageBitmap) {
-        _updatedImages += image
-    }
-    // 이미지 리스트에 특정 이미지 제거
-    fun removeUpdatedImage(image: ImageBitmap) {
-        _updatedImages -= image
-    }
 }

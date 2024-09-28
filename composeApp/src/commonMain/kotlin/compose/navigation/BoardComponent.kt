@@ -12,10 +12,13 @@ class BoardComponent(
 ): ComponentContext by componentContext {
 
     fun onBackButtonClick() {
-        rootComponent.pop()
+        rootComponent.navigate(RootComponent.Configuration.HomeView)
     }
     fun onGalleryButtonClick() {
         rootComponent.navigate(RootComponent.Configuration.GalleryView)
+    }
+    fun removeAllSelectedImages(){
+        rootComponent.imageManager.removeAllSelectedImage()
     }
 
     @Composable

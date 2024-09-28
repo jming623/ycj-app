@@ -38,6 +38,7 @@ import compose.navigation.GalleryComponent
 import compose.navigation.RootComponent
 import compose.service.image.SvgLoader
 import compose.service.image.loadImageFromFile
+import compose.ui.components.ConfirmPopup
 import compose.util.SkylineBlue
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -80,13 +81,13 @@ fun BoardView(
                 .verticalScroll(rememberScrollState())
         ) {
             // Header
-            HeaderSection(boardComponent = boardComponent)
+            HeaderSection(rootComponent = rootComponent, boardComponent = boardComponent)
 
             // Content Section
             ContentSection(selectedImages, textState, onTextChanged = { newText ->
                 textState = newText
-            }, onRemoveImage = { index ->
-                rootComponent.imageManager.removeSelectedImage(selectedImages[index])
+            }, onRemoveImage = { MediaFile ->
+                rootComponent.imageManager.removeSelectedImage(MediaFile)
                 selectedImages = rootComponent.imageManager.getSelectedImages()
             })
 
@@ -117,14 +118,29 @@ fun BoardView(
 }
 
 @Composable
-fun HeaderSection(boardComponent: BoardComponent) {
+fun HeaderSection(rootComponent: RootComponent, boardComponent: BoardComponent) {
+    // 팝업이나 경고 상태를 관리할 변수
+    var showConfirmPopup by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = { boardComponent.onBackButtonClick() } ) {
+        IconButton(onClick = {
+            /*
+            여기서 선택된 이미지나 작성한 글이 있는지 확인하고, 없으면 그냥 HomeView로 이동
+            있으면 경고 출력하고 선택됐던 이미지들 삭제 처리,
+             */
+            if (rootComponent.imageManager.getSelectedImagesSize() > 0) {
+                showConfirmPopup = true
+            }else{
+                boardComponent.removeAllSelectedImages()
+                boardComponent.onBackButtonClick()
+            }
+
+        } ) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "뒤로가기",
@@ -138,20 +154,36 @@ fun HeaderSection(boardComponent: BoardComponent) {
             fontWeight = FontWeight.Bold,
             color = Color.Black
         )
+        // 경고 팝업을 표시하는 부분
+        ConfirmPopup(
+            message = "선택된 이미지가 있습니다. 모두 삭제하시겠습니까?",
+            isVisible = showConfirmPopup,
+            onConfirm = {
+                // 확인을 누르면 이미지 삭제
+                boardComponent.removeAllSelectedImages()
+                boardComponent.onBackButtonClick()
+                showConfirmPopup = false
+            },
+            onDismiss = {
+                // 취소를 누르면 경고 팝업을 닫음
+                showConfirmPopup = false
+            }
+        )
     }
 }
 
 @Composable
 fun ContentSection(
-    selectedImages: List<MediaFile>,
+    selectedImages: Map<MediaFile, ImageBitmap>,
     textState: String,
     onTextChanged: (String) -> Unit,
-    onRemoveImage: (Int) -> Unit
+    onRemoveImage: (MediaFile) -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .heightIn(min = 200.dp)
     ) {
         // 이미지가 있으면 표시
         if (selectedImages.isNotEmpty()) {
@@ -162,14 +194,10 @@ fun ContentSection(
                     .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ){
-                items(selectedImages.size) {index ->
-                    val mediaFile = selectedImages[index]
-                    val bitmap = loadImageFromFile(mediaFile.filePath)
-                    val aspectRatio = if (bitmap != null) {
-                        bitmap.width.toFloat() / bitmap.height.toFloat()
-                    } else {
-                        1f // 기본 비율을 설정하거나 null 처리
-                    }
+                items(selectedImages.size) {idx ->
+                    val (mediaFile, bitmap) = selectedImages.entries.elementAt(idx)
+
+                    val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
 
                     // 비율에 따라 컨테이너 크기 결정
                     val containerHeight = 200.dp
@@ -180,18 +208,16 @@ fun ContentSection(
                             .width(containerWidth)
                             .height(containerHeight)
                     ){
-                        bitmap?.let {
-                            Image(
-                                bitmap = it,
-                                contentDescription = "로컬에서 불러온 이미지",
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                contentScale = ContentScale.Crop // 이미지가 크기에 맞게 잘리도록 설정
-                            )
-                        }
+                        Image(
+                            bitmap = bitmap,
+                            contentDescription = "로컬에서 불러온 이미지",
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentScale = ContentScale.Crop // 이미지가 크기에 맞게 잘리도록 설정
+                        )
                         // 삭제 버튼
                         IconButton(
-                            onClick = { onRemoveImage(index) },
+                            onClick = { onRemoveImage(mediaFile) },
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(7.dp)

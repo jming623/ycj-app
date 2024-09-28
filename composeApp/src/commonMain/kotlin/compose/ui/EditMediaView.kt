@@ -1,5 +1,6 @@
 package compose.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -101,42 +102,23 @@ fun EditMediaView(
                             .padding(8.dp)
                     ) {
                         if (selectedImages.size == 1) {
-                            val selectedImage = selectedImages.firstOrNull()
+                            val (mediaFile, bitmap) = selectedImages.entries.elementAt(0)
 
-                            selectedImage?.let { mediaFile ->
-                                val file = filePathToFile(mediaFile.filePath)
-                                val painterResource = asyncPainterResource(data = file)
-
-                                Box(
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                                    .background(Color.Black, shape = MaterialTheme.shapes.medium)
+                                    .clip(MaterialTheme.shapes.medium) // 둥근 모서리
+                                    .border(2.dp, Color.Gray)
+                            ) {
+                                Image(
+                                    bitmap = bitmap,
+                                    contentDescription = null,
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp)
-                                        .background(Color.Black, shape = MaterialTheme.shapes.medium)
-                                        .clip(MaterialTheme.shapes.medium) // 둥근 모서리
-                                        .border(2.dp, Color.Gray)
-                                ) {
-                                    when (painterResource) {
-                                        is Resource.Loading -> {
-                                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                                        }
-                                        is Resource.Success -> {
-                                            KamelImage(
-                                                resource = painterResource,
-                                                contentDescription = null,
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.Fit
-                                            )
-                                        }
-                                        is Resource.Failure -> {
-                                            Napier.e("이미지 로드 실패: ${file.toString()} - 이유: ${painterResource.exception.message}")
-                                            Text(
-                                                text = "이미지를 불러오는 데 실패했습니다.",
-                                                color = Color.Red,
-                                                modifier = Modifier.align(Alignment.Center)
-                                            )
-                                        }
-                                    }
-                                }
+                                        .fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
                             }
                         } else {
                             LazyRow(
@@ -144,8 +126,7 @@ fun EditMediaView(
                                 horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 items(selectedImages.size) { idx ->
-                                    val file = filePathToFile(selectedImages[idx].filePath)
-                                    val painterResource = asyncPainterResource(data = file)
+                                    val (mediaFile, bitmap) = selectedImages.entries.elementAt(idx)
 
                                     Box(
                                         modifier = Modifier
@@ -156,32 +137,17 @@ fun EditMediaView(
                                             .background(Color.LightGray)
                                             .border(2.dp, Color.Gray)
                                     ) {
-                                        when (painterResource) {
-                                            is Resource.Loading -> {
-                                                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                                            }
-                                            is Resource.Success -> {
-                                                KamelImage(
-                                                    resource = painterResource,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    contentScale = ContentScale.Fit
-                                                )
-                                            }
-                                            is Resource.Failure -> {
-                                                Napier.e("이미지 로드 실패: ${file.toString()} - 이유: ${painterResource.exception.message}")
-                                                Text(
-                                                    text = "이미지를 불러오는 데 실패했습니다.",
-                                                    color = Color.Red,
-                                                    modifier = Modifier.align(Alignment.Center)
-                                                )
-                                            }
-                                        }
-
+                                        Image(
+                                            bitmap = bitmap,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .fillMaxSize(),
+                                            contentScale = ContentScale.Fit
+                                        )
                                         // 우상단 X 아이콘
                                         IconButton(
                                             onClick = {
-                                                rootComponent.imageManager.removeSelectedImage(selectedImages[idx])
+                                                rootComponent.imageManager.removeSelectedImage(mediaFile)
                                                 selectedImages = rootComponent.imageManager.getSelectedImages()
                                             },
                                             modifier = Modifier

@@ -62,11 +62,11 @@ class GalleryComponent(
     }
 
     fun moveToEditMediaView() {
-        rootComponent.imageManager.getSelectedImagesToString()
         rootComponent.navigate(RootComponent.Configuration.EditMediaView)
     }
 
     fun onBackButtonClick() {
+        rootComponent.imageManager.removeAllSelectedImage()
         rootComponent.navigate(RootComponent.Configuration.BoardView)
     }
 

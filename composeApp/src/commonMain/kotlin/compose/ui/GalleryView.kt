@@ -43,9 +43,13 @@ import com.seiko.imageloader.rememberImagePainter
 import compose.data.repos.GalleryFolder
 import compose.data.repos.MediaFile
 import compose.navigation.RootComponent
+import compose.service.image.filePathToFile
 import compose.ui.components.PopupMessage
 import compose.util.SkylineBlue
 import io.github.aakira.napier.Napier
+import io.kamel.core.Resource
+import io.kamel.image.KamelImage
+import io.kamel.image.asyncPainterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -70,8 +74,11 @@ fun GalleryView(
     val mediaFiles = remember { mutableStateOf<List<MediaFile>>(emptyList()) }
     // 선택된 폴더명을 저장할 변수
     var selectedFolderName by remember { mutableStateOf<String?>("최근") }
+
+    // DetailImage와 현재 선택한 이미지가 동일한지 확인하기 위한 변수
+    var currentDetailMediaFile by remember { mutableStateOf<MediaFile?> (null) }
     // 사용자가 클릭한 DetailView에 보여질 현재 이미지
-    var currentDetailImage by remember { mutableStateOf<MediaFile?>(null) }
+    var currentDetailImage by remember { mutableStateOf<ImageBitmap?>(null) }
 
     // 여러 항목을 보여주기 위한 상태를 담는 변수
     val isMultiSelectMode = remember { mutableStateOf(false) }
@@ -91,7 +98,8 @@ fun GalleryView(
         mediaFiles.value = files
 
         if (files.isNotEmpty()) {
-            currentDetailImage = files.first()
+            currentDetailMediaFile = files.first()
+            currentDetailImage = rootComponent.imageManager.mediaFileToImageBitmap(files.first())
             rootComponent.imageManager.setSelectedImages(listOf(files.first()))
         }
     }
@@ -128,7 +136,8 @@ fun GalleryView(
 
             // 여러사진을 선택하는 모드가 아니라면 currentDetailImage 변경
             if (!isMultiSelectMode.value) {
-                currentDetailImage = mediaFiles.value.first()
+                currentDetailMediaFile = mediaFiles.value.first()
+                currentDetailImage = rootComponent.imageManager.mediaFileToImageBitmap(mediaFiles.value.first())
             }
 
             // mediaFiles로드 후 바텀 시트 invisible
@@ -159,7 +168,9 @@ fun GalleryView(
                 Spacer(modifier = Modifier.weight(1f))
 
                 // 오른쪽 끝의 -> 아이콘
-                IconButton(onClick = { galleryComponent.moveToEditMediaView() }) {
+                IconButton(onClick = {
+                    galleryComponent.moveToEditMediaView()
+                }) {
                     Icon(Icons.Default.ArrowForward, contentDescription = "Next")
                 }
             }
@@ -257,14 +268,14 @@ fun GalleryView(
                             .background(Color.LightGray),
                         contentAlignment = Alignment.Center
                     ) {
-                        currentDetailImage?.let {
+                        currentDetailImage?.let { detailImage ->
                             Image(
-                                painter = rememberImagePainter(it.uri),
+                                bitmap = detailImage,
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
-                        } ?: Text("Detail View", color = Color.White)
+                        }
                     }
 
                     // 아래 갤러리 영역
@@ -380,6 +391,11 @@ fun GalleryView(
                             items(mediaFiles.value) { mediaFile ->
                                 val isSelected = rootComponent.imageManager.isSelectedImage(mediaFile)
                                 val selectionIndex = rootComponent.imageManager.getSelectedImageIndex(mediaFile)
+//                                val file = filePathToFile(mediaFile.filePath)
+////                                val painterResource = asyncPainterResource(
+////                                    data = file,
+////                                    filterQuality = FilterQuality.Medium
+////                                )
                                 Box(
                                     modifier = Modifier
                                         .padding(1.dp)
@@ -391,22 +407,26 @@ fun GalleryView(
                                             interactionSource = remember { MutableInteractionSource() }  // 클릭 피드백 제거
                                         ){
                                             if (isMultiSelectMode.value) {
-                                                if (isSelected && mediaFile == currentDetailImage) {
+                                                if (isSelected && mediaFile == currentDetailMediaFile) {
                                                     // 이미 선택된 이미지이고, DetailView에 표시 중인 이미지인 경우 선택 해제
                                                     rootComponent.imageManager.removeSelectedImage(mediaFile)
-                                                    currentDetailImage = rootComponent.imageManager.getLastSelectedImage()
-                                                } else if (isSelected && mediaFile != currentDetailImage) {
+                                                    currentDetailMediaFile = rootComponent.imageManager.getLastSelectedImageMediaFile()
+                                                    currentDetailImage = rootComponent.imageManager.getLastSelectedImageBitmap()
+                                                } else if (isSelected && mediaFile != currentDetailMediaFile) {
                                                     // 이미 선택된 이미지지만 현재 DetailView에 표시되지 않은 경우, DetailView에 표시만 변경
-                                                    currentDetailImage = mediaFile
+                                                    currentDetailMediaFile = mediaFile
+                                                    currentDetailImage = rootComponent.imageManager.mediaFileToImageBitmap(mediaFile)
                                                 } else if (rootComponent.imageManager.getSelectedImagesSize() < 10) {
                                                     rootComponent.imageManager.addSelectedImage(mediaFile)
-                                                    currentDetailImage = mediaFile
+                                                    currentDetailMediaFile = mediaFile
+                                                    currentDetailImage = rootComponent.imageManager.mediaFileToImageBitmap(mediaFile)
                                                 } else {
                                                     showSelectionLimitPopup()  // 10개 초과시 팝업 표시
                                                 }
                                             } else {
                                                 rootComponent.imageManager.setSelectedImages(listOf(mediaFile))
-                                                currentDetailImage = mediaFile
+                                                currentDetailMediaFile = mediaFile
+                                                currentDetailImage = rootComponent.imageManager.mediaFileToImageBitmap(mediaFile)
                                             }
                                         }
                                 ) {
@@ -419,6 +439,30 @@ fun GalleryView(
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier.fillMaxSize()
                                         )
+                                        // Kamel 이미지로더를 적용해보았느나 속도 측면에서 개선을 못함.
+////                                        when (painterResource) {
+//                                            is Resource.Loading -> {
+//                                                androidx.compose.material3.CircularProgressIndicator(
+//                                                    modifier = Modifier.align(Alignment.Center)
+//                                                )
+//                                            }
+//                                            is Resource.Success -> {
+//                                                KamelImage(
+//                                                    resource = painterResource,
+//                                                    contentDescription = null,
+//                                                    modifier = Modifier.fillMaxSize(),
+//                                                    contentScale = ContentScale.Fit
+//                                                )
+//                                            }
+//                                            is Resource.Failure -> {
+//                                                Napier.e("이미지 로드 실패: ${file.toString()} - 이유: ${painterResource.exception.message}")
+//                                                androidx.compose.material3.Text(
+//                                                    text = "이미지를 불러오는 데 실패했습니다.",
+//                                                    color = Color.Red,
+//                                                    modifier = Modifier.align(Alignment.Center)
+//                                                )
+//                                            }
+//                                        }
 
                                         // 다중 선택 모드가 활성화되어 있고 이미지가 선택된 경우, 우측 상단에 선택 순서 표시
                                         if (isMultiSelectMode.value && isSelected) {
@@ -441,7 +485,7 @@ fun GalleryView(
                                             }
                                         }
                                         // currentDetailImage와 일치하는 이미지에 투명한 오버레이 추가
-                                        if (mediaFile == currentDetailImage) {
+                                        if (mediaFile == currentDetailMediaFile) {
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxSize()
